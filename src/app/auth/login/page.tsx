@@ -4,16 +4,24 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useAuth } from "@/lib/api/auth_context"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 export default function page(){
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-    const handleSubmit = () => {};
-    const onSwitchToRegister = () => {};
+  const router = useRouter();
+  const {login} = useAuth();
+  const handleSubmit = () => {
+    login({email, password});
+  };
+  const onSwitchToRegister = () => {
+    router.push("/auth/register")
+  };
 
-    return (
-        <div className="min-h-screen flex items-center justify-center p-4">
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>로그인</CardTitle>
