@@ -5,7 +5,7 @@ export interface CreateItemDto{
     year: number;
 }
 
-export interface DeleteItemDto{
+export interface DeleteItemParams{
     organization_id: number;
     item_id: number;
 }

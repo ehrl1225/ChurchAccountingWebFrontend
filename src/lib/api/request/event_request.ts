@@ -9,7 +9,7 @@ export interface CreateEventDTO{
     description: string;
 };
 
-export interface DeleteEventDto{
+export interface DeleteEventParams{
     organization_id: number;
     event_id: number;
 }
@@ -23,4 +23,7 @@ export interface EditEventDto{
     description:string;
 };
 
-
+export interface SearchEventParams{
+    organizatino_id: number;
+    year: number;
+}

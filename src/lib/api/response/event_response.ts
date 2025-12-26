@@ -3,5 +3,5 @@ export interface EventResponseDTO{
     name: string;
     start_date: Date;
     end_date: Date;
-    description: string;
+    description: string | null;
 }
