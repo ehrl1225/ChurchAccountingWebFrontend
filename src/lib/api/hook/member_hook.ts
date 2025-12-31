@@ -1,9 +1,22 @@
 import axios from "axios";
-import { LoginFormDTO } from "../request/member_request";
+import { LoginFormDTO, RegisterFormDTO } from "../request/member_request";
 import { MemberDTO } from "../response/member_response";
 
 export const useMember = () => {
     const domain_url = `${process.env.NEXT_PUBLIC_SERVER_URL}/member`;
+
+    async function register_request(register_form:RegisterFormDTO) {
+        try{
+            const response = await axios.post(`${domain_url}/register`, register_form, {
+                headers: {
+                    "Content_Type": "application/json"
+                },
+                withCredentials:true,
+            })
+        }catch (error){
+
+        }
+    }
 
     async function login_request(login_form:LoginFormDTO): Promise<MemberDTO | null>{
         try{
@@ -50,6 +63,7 @@ export const useMember = () => {
     }
 
     return {
+        register_request,
         login_request,
         logout_request,
         me_request,

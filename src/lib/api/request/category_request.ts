@@ -3,7 +3,7 @@ import { TxType } from "../common_enum";
 export interface CreateCategoryDTO{
     category_name: string;
     item_name: string | null;
-    tx_type: string;
+    tx_type: TxType;
     organization_id: number;
     year: number
 };
