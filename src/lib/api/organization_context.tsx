@@ -9,6 +9,10 @@ interface OrganizationContextType {
     organizations: OrganizationResponseDto[];
     isLoading: boolean;
     fetchOrganizations: ()=>Promise<void>;
+    selectedOrgId: number | null;
+    setSelectedOrgId: (selectedOrgId:number|null) => void;
+    selectedYear: number | null;
+    setSelectedYear: (selectedYear:number|null) => void;
 }
 
 const OrganizationContext = createContext<OrganizationContextType | undefined>(undefined);
@@ -18,6 +22,9 @@ export const OrganizationProvider = ({children}: {children:ReactNode}) => {
     const {list_joined_organizations} = useJoinedOrganization();
     const [isLoading, setIsLoading] = useState(true);
     const {isAuthenticated} = useAuth();
+    const [selectedOrgId, setSelectedOrgId] = useState<number|null>(null);
+    const [selectedYear, setSelectedYear] = useState<number|null>(null);
+
     const fetchOrganizations = async () => {
         setIsLoading(true);
         if (isAuthenticated){
@@ -33,7 +40,11 @@ export const OrganizationProvider = ({children}: {children:ReactNode}) => {
     const value = {
         organizations,
         isLoading,
-        fetchOrganizations
+        fetchOrganizations,
+        selectedOrgId,
+        setSelectedOrgId,
+        selectedYear,
+        setSelectedYear,
     }
 
     if (isLoading) {

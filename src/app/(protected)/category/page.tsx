@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCategory } from "@/lib/api/hook/category_hook";
 import { useItem } from "@/lib/api/hook/item_hook";
 import { useJoinedOrganization } from "@/lib/api/hook/joined_organization_hook";
+import { useOrganizations } from "@/lib/api/organization_context";
 import { Check, Pencil, Plus, Trash2, TrendingDown, TrendingUp, X } from "lucide-react";
 import { useState } from "react";
 
@@ -22,6 +23,7 @@ export default function CategoryPage() {
   const [isNewPrimary, setIsNewPrimary] = useState(true);
   const [importSourceOrgId, setImportSourceOrgId] = useState('');
   const [importSourceYear, setImportSourceYear] = useState('');
+  const {} = useOrganizations();
   const {} = useJoinedOrganization();
   const {} = useCategory();
   const {} = useItem();
