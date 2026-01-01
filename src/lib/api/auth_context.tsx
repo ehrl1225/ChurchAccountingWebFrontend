@@ -6,6 +6,7 @@ import { useMember } from "./hook/member_hook";
 import { LoginFormDTO } from "./request/member_request";
 import { Card, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 interface AuthContextType {
     member: MemberDTO | null;
@@ -20,6 +21,7 @@ export const AuthProvider = ({children}: {children: ReactNode})=>{
     const [member, setMember] = useState<MemberDTO | null>(null);
     const {login_request, logout_request, me_request} = useMember();
     const [isLoading, setIsLoading] = useState(true);
+    const router = useRouter();
 
     useEffect(() => {
         const checkUserStatus = async () => {

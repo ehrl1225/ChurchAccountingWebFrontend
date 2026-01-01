@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useMember } from "@/lib/api/hook/member_hook";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function page(){
@@ -11,9 +13,23 @@ export default function page(){
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [name, setName] = useState('');
+    const router = useRouter();
+    const {register_request} = useMember();
     
-    const handleSubmit = () => {};
-    const onSwitchToLogin = () => {};
+    const handleSubmit = () => {
+      if (password !== confirmPassword){
+        return;
+      }
+      register_request({
+        "email":email,
+        "name":name,
+        "password":password,
+      })
+
+    };
+    const onSwitchToLogin = () => {
+      router.push("/auth/login");
+    };
 
     return (
         <div className="min-h-screen flex items-center justify-center p-4">

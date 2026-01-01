@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/api/auth_context"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
-export default function page(){
+export default function login_page(){
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const router = useRouter();

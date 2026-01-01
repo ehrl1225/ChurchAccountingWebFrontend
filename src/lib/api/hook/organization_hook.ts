@@ -1,7 +1,8 @@
+import axios from "axios";
 import { OrganizationRequestDto } from "../request/organization_request"
 
 
-export const use_organization = () => {
+export const useOrganization = () => {
     const domain_url = `${process.env.NEXT_PUBLIC_SERVER_URL}/organization`;
 
     const create_organization = async (organization:OrganizationRequestDto) => {

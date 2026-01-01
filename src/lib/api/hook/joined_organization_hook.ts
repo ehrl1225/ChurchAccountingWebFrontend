@@ -1,7 +1,9 @@
+import axios from "axios";
 import { ChangeRoleDto, DeleteJoinedOrganizationParams } from "../request/joined_organization_request"
 import { OrganizationRequestDto } from "../request/organization_request";
+import { OrganizationResponseDto } from "../response/organization_response";
 
-export const use_joined_organization = () => {
+export const useJoinedOrganization = () => {
     const domain_url = `${process.env.NEXT_PUBLIC_SERVER_URL}/joined-organization`;
 
     const change_role = async (organization_id:number, change_role:ChangeRoleDto) => {
@@ -17,15 +19,20 @@ export const use_joined_organization = () => {
         }
     }
 
-    const list_joined_organizations = async () => {
+    const list_joined_organizations = async ():Promise<OrganizationResponseDto[]> => {
         try{
-            const response = await axios.get<OrganizationRequestDto[]>(domain_url, {
+            const response = await axios.get<OrganizationResponseDto[]>(domain_url, {
+                headers:{
+                    "Content_Type":"application/json",
+                },
                 withCredentials:true,
             })
             return response.data;
         }catch(error){
+            console.error(error);
 
         }
+        return [];
     }
 
     const delete_joined_organization = async (delete_joined_organization:DeleteJoinedOrganizationParams) => {

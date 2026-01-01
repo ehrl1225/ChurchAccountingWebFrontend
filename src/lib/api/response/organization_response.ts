@@ -1,3 +1,4 @@
+import { MemberRole } from "../common_enum";
 import { JoinedOrganizatinoResponse } from "./joined_organization_response";
 
 export interface OrganizationResponseDto{
@@ -6,5 +7,6 @@ export interface OrganizationResponseDto{
     description: string | null;
     start_year: number;
     end_year: number;
-    members: JoinedOrganizatinoResponse[]
+    my_role: MemberRole;
+    members: JoinedOrganizatinoResponse[];
 }

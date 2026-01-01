@@ -1,9 +1,9 @@
 import { invitation_status } from "../common_enum";
 import { CreateOrganizationInvitationDto } from "../request/organization_invitation_request";
-import { OrganizationResponseDto } from "../response/organizatino_response";
+import { OrganizationResponseDto } from "../response/organization_response";
 
 
-export const use_organization_invitation = () => {
+export const useOrganizationInvitation = () => {
     const domain_url = `${process.env.NEXT_PUBLIC_SERVER_URL}/organization-invitation`;
 
     const create_organization_invitation = async (organization_invitation:CreateOrganizationInvitationDto) => {
