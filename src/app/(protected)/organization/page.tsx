@@ -18,6 +18,7 @@ import { Pencil, Plus, Trash2, UserPlus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import {MemberRole} from "@/lib/api/common_enum"
 import { JoinedOrganizatinoResponse } from "@/lib/api/response/joined_organization_response";
+import { useOrganizations } from "@/lib/api/organization_context";
 
 export default function organization_page() {
   const {member:current_member} = useAuth();
@@ -31,20 +32,11 @@ export default function organization_page() {
   const [start_year, setStartYear] = useState(new Date().getFullYear());
   const [end_year, setEndYear] = useState(new Date().getFullYear() + 1);
   const [inviteUserId, setInviteUserId] = useState('');
-  const [organizations, setOrganizations] = useState<OrganizationResponseDto[]>([]);
 
   const {create_organization, update_organization, delete_organization} = useOrganization();
-  const {change_role, delete_joined_organization, list_joined_organizations} = useJoinedOrganization();
+  const {change_role, delete_joined_organization} = useJoinedOrganization();
   const {create_organization_invitation} = useOrganizationInvitation();
-
-  const fetchOrganizations = async () => {
-    const data = await list_joined_organizations();
-      setOrganizations(data);
-  }
-
-  useEffect(()=>{
-    fetchOrganizations();
-  }, [])
+  const {organizations,fetchOrganizations} = useOrganizations();
 
   const resetForm = () => {
     setName('');

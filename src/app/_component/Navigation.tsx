@@ -10,7 +10,7 @@ import { useState } from "react";
 
 export type Page = '/auth/login' | '/auth/register' | '/ledger/total' | '/ledger/summary' | '/category' | '/event' | '/organization';
 
-export function Navigation({currentPage}:{"currentPage":Page}) {
+export function Navigation({currentPage, pendingInvitationsCount}:{currentPage:Page, pendingInvitationsCount:number}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
   const {logout} = useAuth();
@@ -31,7 +31,6 @@ export function Navigation({currentPage}:{"currentPage":Page}) {
   const onNavigate = (page:Page) => {
     router.push(page);
   }
-  const pendingInvitationsCount = 0;
 
   return (
     <nav className="bg-white shadow-sm border-b">
@@ -54,7 +53,7 @@ export function Navigation({currentPage}:{"currentPage":Page}) {
                     <Icon className="w-4 h-4" />
                     {item.label}
                     {item.id === '/organization' && pendingInvitationsCount > 0 && (
-                      <Badge className="ml-2" variant="outline">
+                      <Badge className="ml-2" variant="secondary">
                         {pendingInvitationsCount}
                       </Badge>
                     )}
@@ -92,7 +91,7 @@ export function Navigation({currentPage}:{"currentPage":Page}) {
                         <Icon className="w-5 h-5" />
                         {item.label}
                         {item.id === '/organization' && pendingInvitationsCount > 0 && (
-                          <Badge className="ml-auto" variant="outline">
+                          <Badge className="ml-auto" variant="secondary">
                             {pendingInvitationsCount}
                           </Badge>
                         )}

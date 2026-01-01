@@ -1,3 +1,4 @@
+import axios from "axios";
 import { invitation_status } from "../common_enum";
 import { CreateOrganizationInvitationDto } from "../request/organization_invitation_request";
 import { OrganizationResponseDto } from "../response/organization_response";
@@ -22,7 +23,7 @@ export const useOrganizationInvitation = () => {
 
     const update_organization_invitation = async (organization_invitation_id:number, status:invitation_status)=>{
         try{
-            const response = await axios.put(`${domain_url}/${organization_invitation_id}/${status}`, null, {
+            const response = await axios.put(`${domain_url}/${organization_invitation_id}/{status}?status_literal=${status}`, null, {
                 withCredentials:true,
             })
         }catch (error){
