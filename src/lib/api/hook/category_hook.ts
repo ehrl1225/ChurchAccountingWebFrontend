@@ -40,7 +40,7 @@ export const useCategory = () => {
                 year:search_category_params.year.toString(),
                 tx_type:search_category_params.tx_type.toString()
             });
-            const response = await axios.get<CategoryResponseDto[]>(`${domain_url}?${params.toString}`, {
+            const response = await axios.get<CategoryResponseDto[]>(`${domain_url}?${params.toString()}`, {
                 withCredentials:true,
             });
             return response.data;

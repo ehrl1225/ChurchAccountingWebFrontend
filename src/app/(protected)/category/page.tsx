@@ -13,16 +13,14 @@ import { useItem } from "@/lib/api/hook/item_hook";
 import { useJoinedOrganization } from "@/lib/api/hook/joined_organization_hook";
 import { useOrganizations } from "@/lib/api/organization_context";
 import { EditAllCategoryDto } from "@/lib/api/request/category_request";
-import { EditItemDto } from "@/lib/api/request/item_request";
 import { CategoryResponseDto } from "@/lib/api/response/category_response";
-import { ItemResponseDto } from "@/lib/api/response/item_response";
 import { Check, Pencil, Plus, Trash2, TrendingDown, TrendingUp, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function CategoryPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
-  const [categoryType, setCategoryType] = useState<TxType>("INCOME");
+  const [categoryType, setCategoryType] = useState<TxType>("OUTCOME");
   const [primaryCategory, setPrimaryCategory] = useState('');
   const [secondaryCategory, setSecondaryCategory] = useState('');
   const [isNewPrimary, setIsNewPrimary] = useState(true);
@@ -50,6 +48,27 @@ export default function CategoryPage() {
   const [editableCategories, setEditableCategories] = useState<EditAllCategoryDto[]>([]);
   const [editingSecondaryId, setEditingSecondaryId] = useState<Number | null>(null);
   const [editingSecondaryValue, setEditingSecondaryValue] = useState('');
+
+  const fetchCategories = async (tx_type:TxType) => {
+    if (selectedOrgId === null){
+      return;
+    }
+    if (selectedYear === null) {
+      return;
+    }
+    const data = await get_categories({
+      organization_id:selectedOrgId,
+      year:selectedYear,
+      tx_type:tx_type
+    });
+    console.log(selectedOrgId, selectedYear, tx_type, data);
+    setCategories(data);
+  }
+
+  useEffect(()=>{
+    fetchCategories(categoryType);
+    
+  },[selectedOrgId, selectedYear])
 
   const onAddCategory = (a:string,b:string,c:string) => {}
   const onImportCategories = async () => {
@@ -456,19 +475,19 @@ export default function CategoryPage() {
         </div>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="expense" className="w-full">
+        <Tabs defaultValue="OUTCOME" className="w-full" onValueChange={v => fetchCategories(v as TxType)}>
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="expense" className="flex items-center gap-2">
+            <TabsTrigger value="OUTCOME" className="flex items-center gap-2">
               <TrendingDown className="w-4 h-4" />
               지출
             </TabsTrigger>
-            <TabsTrigger value="income" className="flex items-center gap-2">
+            <TabsTrigger value="INCOME" className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
               수입
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="expense" className="space-y-4 mt-4">
+          <TabsContent value="OUTCOME" className="space-y-4 mt-4">
             {filteredCategoriesByType("OUTCOME").length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 등록된 지출 카테고리가 없습니다.
@@ -587,7 +606,7 @@ export default function CategoryPage() {
             )}
           </TabsContent>
 
-          <TabsContent value="income" className="space-y-4 mt-4">
+          <TabsContent value="INCOME" className="space-y-4 mt-4">
             {filteredCategoriesByType("INCOME").length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 등록된 수입 카테고리가 없습니다.
