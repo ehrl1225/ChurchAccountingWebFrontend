@@ -1,3 +1,4 @@
+import axios from "axios";
 import { CreateEventDTO, DeleteEventParams, EditEventDto, SearchEventParams } from "../request/event_request";
 import { EventResponseDTO } from "../response/event_response";
 

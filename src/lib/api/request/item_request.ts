@@ -17,3 +17,10 @@ export interface EditItemDto{
     item_id: number;
     item_name: string;
 }
+
+export interface EditAllItemDto{
+    category_id: number;
+    id: number | null;
+    name: string;
+    deleted: boolean;
+}

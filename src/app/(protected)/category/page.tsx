@@ -7,35 +7,68 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TxType } from "@/lib/api/common_enum";
 import { useCategory } from "@/lib/api/hook/category_hook";
 import { useItem } from "@/lib/api/hook/item_hook";
 import { useJoinedOrganization } from "@/lib/api/hook/joined_organization_hook";
 import { useOrganizations } from "@/lib/api/organization_context";
+import { EditAllCategoryDto } from "@/lib/api/request/category_request";
+import { EditItemDto } from "@/lib/api/request/item_request";
+import { CategoryResponseDto } from "@/lib/api/response/category_response";
+import { ItemResponseDto } from "@/lib/api/response/item_response";
 import { Check, Pencil, Plus, Trash2, TrendingDown, TrendingUp, X } from "lucide-react";
 import { useState } from "react";
 
 export default function CategoryPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
-  const [categoryType, setCategoryType] = useState<'income' | 'expense'>('expense');
+  const [categoryType, setCategoryType] = useState<TxType>("INCOME");
   const [primaryCategory, setPrimaryCategory] = useState('');
   const [secondaryCategory, setSecondaryCategory] = useState('');
   const [isNewPrimary, setIsNewPrimary] = useState(true);
   const [importSourceOrgId, setImportSourceOrgId] = useState('');
   const [importSourceYear, setImportSourceYear] = useState('');
-  const {} = useOrganizations();
+  const [categories, setCategories] = useState<CategoryResponseDto[]>([]);
+  const {organizations, selectedOrgId, selectedYear} = useOrganizations();
   const {} = useJoinedOrganization();
-  const {} = useCategory();
+  const {get_categories, import_category, update_all_category} = useCategory();
   const {} = useItem();
+
+  const selectedOrg = organizations.find(org => org.id === selectedOrgId);
+  const availableOrganizations = organizations
+  
+    // 선택된 조직의 연도 범위에 따라 연도 목록 생성
+    const availableYears = selectedOrg 
+    ? Array.from(
+        { length: selectedOrg.end_year - selectedOrg.start_year + 1 }, 
+        (_, i) => selectedOrg.start_year + i
+        ).filter(e=>e!==selectedYear)
+    : [];
   
   // 일괄 편집 모드 상태
   const [isEditMode, setIsEditMode] = useState(false);
-  const [editableCategories, setEditableCategories] = useState<EditableCategory[]>([]);
-  const [editingSecondaryId, setEditingSecondaryId] = useState<string | null>(null);
+  const [editableCategories, setEditableCategories] = useState<EditAllCategoryDto[]>([]);
+  const [editingSecondaryId, setEditingSecondaryId] = useState<Number | null>(null);
   const [editingSecondaryValue, setEditingSecondaryValue] = useState('');
 
   const onAddCategory = (a:string,b:string,c:string) => {}
+  const onImportCategories = async () => {
+    const orgId = Number(importSourceOrgId);
+    const year = Number(importSourceYear);
+    if (selectedOrgId === null){
+      return;
+    }
+    if (selectedYear === null){
+      return;
+    }
+    await import_category({
+       from_organization_id:orgId,
+       from_organization_year:year,
+       to_organization_id:selectedOrgId,
+       to_organization_year:selectedYear,
+    });
 
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,9 +81,10 @@ export default function CategoryPage() {
   };
 
   const hasWritePermission = () => {
-    if (!currentOrganization) return false;
-    const member = currentOrganization.members.find(m => m.userId === currentUserId);
-    return member?.permission === 'write' || member?.permission === 'admin' || member?.permission === 'owner' || currentOrganization.createdBy === currentUserId;
+    if (selectedOrg){
+      return selectedOrg.my_role === "READ_WRITE" || selectedOrg.my_role === "ADMIN" || selectedOrg.my_role === "OWNER"
+    }
+    return false;
   };
 
   const canEdit = hasWritePermission();
@@ -58,68 +92,41 @@ export default function CategoryPage() {
   const handleImport = (e: React.FormEvent) => {
     e.preventDefault();
     if (importSourceOrgId && importSourceYear) {
-      onImportCategories(importSourceOrgId, Number(importSourceYear));
+      onImportCategories();
       setImportDialogOpen(false);
       setImportSourceOrgId('');
       setImportSourceYear('');
     }
-  };
+  }
 
-  // 불러올 수 있는 조직 목록 가져오기
-  const getAvailableOrganizations = () => {
-    const orgMap = new Map<string, { id: string; name: string }>();
-    
-    allCategories.forEach(cat => {
-      // 현재 선택된 조직이 아니거나, 같은 조직이지만 다른 연도가 있는 경우
-      if (!orgMap.has(cat.organizationId)) {
-        const org = allOrganizations.find(o => o.id === cat.organizationId);
-        if (org) {
-          orgMap.set(cat.organizationId, {
-            id: org.id,
-            name: org.name,
-          });
-        }
-      }
-    });
-
-    return Array.from(orgMap.values());
-  };
-
-  // 선택된 조직의 사용 가능한 연도 목록 가져오기
-  const getAvailableYears = (orgId: string) => {
-    const years = new Set<number>();
-    
-    allCategories.forEach(cat => {
-      if (cat.organizationId === orgId) {
-        // 현재 선택된 조직/연도 조합은 제외
-        if (cat.organizationId !== selectedOrganizationId || cat.year !== selectedYear) {
-          years.add(cat.year);
-        }
-      }
-    });
-
-    return Array.from(years).sort((a, b) => b - a);
-  };
-
-  const availableOrganizations = getAvailableOrganizations();
-  const availableYears = importSourceOrgId ? getAvailableYears(importSourceOrgId) : [];
 
   // 현재 탭의 카테고리만 필터링
-  const filteredCategoriesByType = (type: 'income' | 'expense') => {
+  const filteredCategoriesByType = (type: TxType) => {
     if (isEditMode) {
-      return editableCategories.filter(c => c.type === type && !c.isDeleted);
+      return editableCategories.filter(c => c.tx_type === type && !c.deleted);
     }
-    return categories.filter(c => c.type === type);
+    return categories.filter(c => c.tx_type === type);
   };
 
   // 카테고리 타입별로 기존 관 목록 가져오기
   const getExistingPrimaryCategories = () => {
-    return categories.filter(c => c.type === categoryType);
+    return categories.filter(c => c.tx_type === categoryType);
   };
 
   // 편집 모드 시작
   const startEditMode = () => {
-    setEditableCategories(categories.map(cat => ({ ...cat })));
+    setEditableCategories(categories.map(cat => ({
+      id:cat.id,
+      name:cat.name,
+      tx_type:cat.tx_type,
+      items:cat.items.map(item => ({
+        category_id: cat.id,
+        id:item.id,
+        name:item.name,
+        deleted:false
+      })),
+      deleted:false,
+    })));
     setIsEditMode(true);
   };
 
@@ -131,12 +138,23 @@ export default function CategoryPage() {
     setEditingSecondaryValue('');
   };
 
+  const onUpdateCategories = async () => {
+    if (selectedOrgId === null){
+      return;
+    }
+    if (selectedYear === null){
+      return;
+    }
+    await update_all_category({
+      organization_id:selectedOrgId,
+      year:selectedYear,
+      categories:editableCategories
+    })
+  };
+
   // 편집 내용 적용
   const applyChanges = () => {
-    if (onUpdateCategories) {
-      const updatedCategories = editableCategories.filter(cat => !cat.isDeleted);
-      onUpdateCategories(updatedCategories);
-    }
+    onUpdateCategories();
     setIsEditMode(false);
     setEditableCategories([]);
     setEditingSecondaryId(null);
@@ -144,14 +162,14 @@ export default function CategoryPage() {
   };
 
   // 항목 추가 (편집 모드)
-  const addSecondaryInEditMode = (categoryId: string) => {
+  const addSecondaryInEditMode = (categoryId: number | null) => {
     const newSecondary = window.prompt('새 항목 이름을 입력하세요:');
     if (newSecondary && newSecondary.trim()) {
       setEditableCategories(prev => prev.map(cat => {
         if (cat.id === categoryId) {
           return {
             ...cat,
-            secondaries: [...cat.secondaries, newSecondary.trim()],
+            secondaries: [...cat.items, newSecondary.trim()],
           };
         }
         return cat;
@@ -160,12 +178,12 @@ export default function CategoryPage() {
   };
 
   // 항목 삭제 (편집 모드)
-  const deleteSecondaryInEditMode = (categoryId: string, secondary: string) => {
+  const deleteSecondaryInEditMode = (categoryId: number | null, secondaryId: number| null) => {
     setEditableCategories(prev => prev.map(cat => {
       if (cat.id === categoryId) {
         return {
           ...cat,
-          secondaries: cat.secondaries.filter(s => s !== secondary),
+          secondaries: cat.items.filter(s => s.id !== secondaryId),
         };
       }
       return cat;
@@ -173,7 +191,10 @@ export default function CategoryPage() {
   };
 
   // 관 삭제 (편집 모드)
-  const deleteCategoryInEditMode = (categoryId: string) => {
+  const deleteCategoryInEditMode = (categoryId: number| null) => {
+    if (categoryId === null) {
+      return;
+    }
     setEditableCategories(prev => prev.map(cat => {
       if (cat.id === categoryId) {
         return { ...cat, isDeleted: true };
@@ -182,20 +203,24 @@ export default function CategoryPage() {
     }));
   };
 
+  const onDeleteCategory = (categoryId:Number|null) => {
+
+  }
+
   // 항목 수정 시작
-  const startEditingSecondary = (categoryId: string, secondary: string) => {
-    setEditingSecondaryId(`${categoryId}-${secondary}`);
-    setEditingSecondaryValue(secondary);
+  const startEditingSecondary = (itemId:number | null, itemName: string) => {
+    setEditingSecondaryId(itemId);
+    setEditingSecondaryValue(itemName);
   };
 
   // 항목 수정 저장
-  const saveEditingSecondary = (categoryId: string, oldSecondary: string) => {
-    if (editingSecondaryValue.trim() && editingSecondaryValue !== oldSecondary) {
+  const saveEditingSecondary = (categoryId: number|null, oldSecondaryId: Number | null, oldSecondaryName:string) => {
+    if (editingSecondaryValue.trim() && editingSecondaryValue !== oldSecondaryName) {
       setEditableCategories(prev => prev.map(cat => {
         if (cat.id === categoryId) {
           return {
             ...cat,
-            secondaries: cat.secondaries.map(s => s === oldSecondary ? editingSecondaryValue.trim() : s),
+            items: cat.items.map(s => s.id === oldSecondaryId ? {...s, name:editingSecondaryValue.trim()} : s),
           };
         }
         return cat;
@@ -242,9 +267,9 @@ export default function CategoryPage() {
                         <div className="grid grid-cols-2 gap-2">
                           <Button
                             type="button"
-                            variant={categoryType === 'income' ? 'default' : 'outline'}
+                            variant={categoryType === "INCOME" ? 'default' : 'outline'}
                             onClick={() => {
-                              setCategoryType('income');
+                              setCategoryType("INCOME");
                               setPrimaryCategory('');
                             }}
                             className="w-full"
@@ -254,9 +279,9 @@ export default function CategoryPage() {
                           </Button>
                           <Button
                             type="button"
-                            variant={categoryType === 'expense' ? 'default' : 'outline'}
+                            variant={categoryType === "OUTCOME" ? 'default' : 'outline'}
                             onClick={() => {
-                              setCategoryType('expense');
+                              setCategoryType("OUTCOME");
                               setPrimaryCategory('');
                             }}
                             className="w-full"
@@ -319,8 +344,8 @@ export default function CategoryPage() {
                           >
                             <option value="">선택하세요</option>
                             {getExistingPrimaryCategories().map((category) => (
-                              <option key={category.id} value={category.primary}>
-                                {category.primary}
+                              <option key={category.id} value={category.id}>
+                                {category.name}
                               </option>
                             ))}
                           </select>
@@ -444,18 +469,18 @@ export default function CategoryPage() {
           </TabsList>
 
           <TabsContent value="expense" className="space-y-4 mt-4">
-            {filteredCategoriesByType('expense').length === 0 ? (
+            {filteredCategoriesByType("OUTCOME").length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 등록된 지출 카테고리가 없습니다.
               </div>
             ) : (
               <div className="space-y-4">
-                {filteredCategoriesByType('expense').map((category) => (
+                {filteredCategoriesByType("OUTCOME").map((category) => (
                   <Card key={category.id}>
                     <CardHeader>
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
-                          <CardTitle className="text-lg">{category.primary}</CardTitle>
+                          <CardTitle className="text-lg">{category.name}</CardTitle>
                           <Badge variant="destructive" className="flex items-center gap-1">
                             <TrendingDown className="w-3 h-3" />
                             지출
@@ -466,7 +491,7 @@ export default function CategoryPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => addSecondaryInEditMode(category.id)}
+                              onClick={() => addSecondaryInEditMode(category.id!)}
                             >
                               <Plus className="w-4 h-4" />
                             </Button>
@@ -475,7 +500,7 @@ export default function CategoryPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => isEditMode ? deleteCategoryInEditMode(category.id) : onDeleteCategory(category.primary)}
+                              onClick={() => isEditMode ? deleteCategoryInEditMode(category.id) : onDeleteCategory(category.id)}
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -485,12 +510,11 @@ export default function CategoryPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap gap-2">
-                        {category.secondaries.map((secondary) => {
-                          const editId = `${category.id}-${secondary}`;
-                          const isEditing = editingSecondaryId === editId;
+                        {category.items.map((secondary) => {
+                          const isEditing = editingSecondaryId === secondary.id;
                           
                           return (
-                            <div key={secondary} className="flex items-center gap-1">
+                            <div key={secondary.id} className="flex items-center gap-1">
                               {isEditing ? (
                                 <div className="flex items-center gap-1">
                                   <Input
@@ -500,7 +524,7 @@ export default function CategoryPage() {
                                     autoFocus
                                     onKeyDown={(e) => {
                                       if (e.key === 'Enter') {
-                                        saveEditingSecondary(category.id, secondary);
+                                        saveEditingSecondary(category.id, secondary.id, secondary.name);
                                       } else if (e.key === 'Escape') {
                                         cancelEditingSecondary();
                                       }
@@ -510,7 +534,7 @@ export default function CategoryPage() {
                                     size="icon"
                                     variant="ghost"
                                     className="h-8 w-8"
-                                    onClick={() => saveEditingSecondary(category.id, secondary)}
+                                    onClick={() => saveEditingSecondary(category.id, secondary.id, secondary.name)}
                                   >
                                     <Check className="w-3 h-3" />
                                   </Button>
@@ -525,17 +549,17 @@ export default function CategoryPage() {
                                 </div>
                               ) : (
                                 <Badge variant="secondary" className="flex items-center gap-2">
-                                  {secondary}
+                                  {secondary.name}
                                   {isEditMode && (
                                     <>
                                       <button
-                                        onClick={() => startEditingSecondary(category.id, secondary)}
+                                        onClick={() => startEditingSecondary(secondary.id, secondary.name)}
                                         className="ml-1 hover:text-blue-600"
                                       >
                                         <Pencil className="w-3 h-3" />
                                       </button>
                                       <button
-                                        onClick={() => deleteSecondaryInEditMode(category.id, secondary)}
+                                        onClick={() => deleteSecondaryInEditMode(category.id, secondary.id)}
                                         className="hover:text-red-600"
                                       >
                                         ×
@@ -544,7 +568,7 @@ export default function CategoryPage() {
                                   )}
                                   {canEdit && !isEditMode && (
                                     <button
-                                      onClick={() => onDeleteCategory(category.primary, secondary)}
+                                      onClick={() => onDeleteCategory(category.id)}
                                       className="ml-1 hover:text-red-600"
                                     >
                                       ×
@@ -564,18 +588,18 @@ export default function CategoryPage() {
           </TabsContent>
 
           <TabsContent value="income" className="space-y-4 mt-4">
-            {filteredCategoriesByType('income').length === 0 ? (
+            {filteredCategoriesByType("INCOME").length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 등록된 수입 카테고리가 없습니다.
               </div>
             ) : (
               <div className="space-y-4">
-                {filteredCategoriesByType('income').map((category) => (
+                {filteredCategoriesByType("INCOME").map((category) => (
                   <Card key={category.id}>
                     <CardHeader>
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
-                          <CardTitle className="text-lg">{category.primary}</CardTitle>
+                          <CardTitle className="text-lg">{category.name}</CardTitle>
                           <Badge className="flex items-center gap-1" style={{ backgroundColor: '#10b981' }}>
                             <TrendingUp className="w-3 h-3" />
                             수입
@@ -595,7 +619,7 @@ export default function CategoryPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => isEditMode ? deleteCategoryInEditMode(category.id) : onDeleteCategory(category.primary)}
+                              onClick={() => isEditMode ? deleteCategoryInEditMode(category.id) : onDeleteCategory(category.id)}
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -605,12 +629,11 @@ export default function CategoryPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap gap-2">
-                        {category.secondaries.map((secondary) => {
-                          const editId = `${category.id}-${secondary}`;
-                          const isEditing = editingSecondaryId === editId;
+                        {category.items.map((secondary) => {
+                          const isEditing = editingSecondaryId === secondary.id;
                           
                           return (
-                            <div key={secondary} className="flex items-center gap-1">
+                            <div key={secondary.id} className="flex items-center gap-1">
                               {isEditing ? (
                                 <div className="flex items-center gap-1">
                                   <Input
@@ -620,7 +643,7 @@ export default function CategoryPage() {
                                     autoFocus
                                     onKeyDown={(e) => {
                                       if (e.key === 'Enter') {
-                                        saveEditingSecondary(category.id, secondary);
+                                        saveEditingSecondary(category.id, secondary.id, secondary.name);
                                       } else if (e.key === 'Escape') {
                                         cancelEditingSecondary();
                                       }
@@ -630,7 +653,7 @@ export default function CategoryPage() {
                                     size="icon"
                                     variant="ghost"
                                     className="h-8 w-8"
-                                    onClick={() => saveEditingSecondary(category.id, secondary)}
+                                    onClick={() => saveEditingSecondary(category.id, secondary.id, secondary.name)}
                                   >
                                     <Check className="w-3 h-3" />
                                   </Button>
@@ -645,17 +668,17 @@ export default function CategoryPage() {
                                 </div>
                               ) : (
                                 <Badge variant="secondary" className="flex items-center gap-2">
-                                  {secondary}
+                                  {secondary.name}
                                   {isEditMode && (
                                     <>
                                       <button
-                                        onClick={() => startEditingSecondary(category.id, secondary)}
+                                        onClick={() => startEditingSecondary(secondary.id, secondary.name)}
                                         className="ml-1 hover:text-blue-600"
                                       >
                                         <Pencil className="w-3 h-3" />
                                       </button>
                                       <button
-                                        onClick={() => deleteSecondaryInEditMode(category.id, secondary)}
+                                        onClick={() => deleteSecondaryInEditMode(category.id, secondary.id)}
                                         className="hover:text-red-600"
                                       >
                                         ×
@@ -664,7 +687,7 @@ export default function CategoryPage() {
                                   )}
                                   {canEdit && !isEditMode && (
                                     <button
-                                      onClick={() => onDeleteCategory(category.primary, secondary)}
+                                      onClick={() => onDeleteCategory(category.id)}
                                       className="ml-1 hover:text-red-600"
                                     >
                                       ×

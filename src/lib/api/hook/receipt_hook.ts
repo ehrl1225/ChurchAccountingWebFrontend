@@ -1,3 +1,4 @@
+import axios from "axios";
 import { CreateReceiptDto, DeleteReceiptParams, EditReceiptDto, SearchAllReceiptParams } from "../request/receipt_request";
 
 

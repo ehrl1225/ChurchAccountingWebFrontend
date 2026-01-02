@@ -1,4 +1,5 @@
-import { CreateCategoryDTO, DeleteCategoryParams, EditCategoryDto, SearchCategoryParams } from "../request/category_request"
+import axios from "axios";
+import { CreateCategoryDTO, DeleteCategoryParams, EditAllDto, EditCategoryDto, ImportCategoryDto, SearchCategoryParams } from "../request/category_request"
 import { CategoryResponseDto } from "../response/category_response";
 
 
@@ -14,6 +15,19 @@ export const useCategory = () => {
                 withCredentials:true,
             });
             
+        }catch(error){
+
+        }
+    }
+
+    const import_category = async (import_category:ImportCategoryDto) => {
+        try{
+            const response = await axios.post(`${domain_url}/import`, import_category, {
+                headers:{
+                    "Content_Type":"application/json",
+                },
+                withCredentials:true,
+            })
         }catch(error){
 
         }
@@ -40,7 +54,20 @@ export const useCategory = () => {
         try{
             const response = await axios.put(domain_url,edit_category, {
                 headers:{
-                    "Content-Type":"application/json"
+                    "Content_Type":"application/json"
+                },
+                withCredentials:true,
+            })
+        }catch(error){
+
+        }
+    }
+
+    const update_all_category = async (edit_all_dto:EditAllDto) => {
+        try{
+            const response = await axios.put(`${domain_url}/all`,edit_all_dto, {
+                headers: {
+                    "Content_Type":"application/json",
                 },
                 withCredentials:true,
             })
@@ -62,8 +89,10 @@ export const useCategory = () => {
     }
     return {
         create_category,
+        import_category,
         get_categories,
         update_category,
+        update_all_category,
         delete_category,
     }
 }
