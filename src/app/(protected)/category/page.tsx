@@ -28,8 +28,7 @@ export default function CategoryPage() {
   const [importSourceYear, setImportSourceYear] = useState('');
   const [categories, setCategories] = useState<CategoryResponseDto[]>([]);
   const {organizations, selectedOrgId, selectedYear} = useOrganizations();
-  const {} = useJoinedOrganization();
-  const {get_categories, import_category, update_all_category} = useCategory();
+  const {get_categories, import_category, update_all_category, create_category} = useCategory();
   const {} = useItem();
 
   const selectedOrg = organizations.find(org => org.id === selectedOrgId);
@@ -61,16 +60,29 @@ export default function CategoryPage() {
       year:selectedYear,
       tx_type:tx_type
     });
-    console.log(selectedOrgId, selectedYear, tx_type, data);
     setCategories(data);
   }
 
   useEffect(()=>{
     fetchCategories(categoryType);
-    
-  },[selectedOrgId, selectedYear])
+  },[selectedOrgId, selectedYear,categoryType])
 
-  const onAddCategory = (a:string,b:string,c:string) => {}
+  const onAddCategory = async (tx_type:TxType, category:string,item:string) => {
+    if (selectedOrgId === null){
+      return;
+    }
+    if (selectedYear === null) {
+      return;
+    }
+    await create_category({
+      category_name:category,
+      item_name:item,
+      organization_id:selectedOrgId,
+      tx_type:tx_type,
+      year:selectedYear,
+    });
+    await fetchCategories(categoryType);
+  }
   const onImportCategories = async () => {
     const orgId = Number(importSourceOrgId);
     const year = Number(importSourceYear);
@@ -91,12 +103,12 @@ export default function CategoryPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (primaryCategory && secondaryCategory) {
-      onAddCategory(categoryType, primaryCategory, secondaryCategory);
-      setPrimaryCategory('');
-      setSecondaryCategory('');
-      setDialogOpen(false);
-    }
+    
+    onAddCategory(categoryType, primaryCategory, secondaryCategory);
+    setPrimaryCategory('');
+    setSecondaryCategory('');
+    setDialogOpen(false);
+    
   };
 
   const hasWritePermission = () => {
@@ -216,7 +228,7 @@ export default function CategoryPage() {
     }
     setEditableCategories(prev => prev.map(cat => {
       if (cat.id === categoryId) {
-        return { ...cat, isDeleted: true };
+        return { ...cat, deleted: true };
       }
       return cat;
     }));
@@ -379,7 +391,6 @@ export default function CategoryPage() {
                           placeholder="예: 행사비"
                           value={secondaryCategory}
                           onChange={(e) => setSecondaryCategory(e.target.value)}
-                          required
                         />
                       </div>
 
@@ -475,7 +486,7 @@ export default function CategoryPage() {
         </div>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="OUTCOME" className="w-full" onValueChange={v => fetchCategories(v as TxType)}>
+        <Tabs defaultValue="OUTCOME" className="w-full" onValueChange={e=>setCategoryType(e as TxType)}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="OUTCOME" className="flex items-center gap-2">
               <TrendingDown className="w-4 h-4" />

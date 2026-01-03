@@ -20,7 +20,6 @@ export function OrganizationSelector() {
 
     const onOrganizationChange = (id: string) => {
         setSelectedOrgId(Number(id));
-        setSelectedYear(null);
     }
 
     const onYearChange = (year: string) => {
