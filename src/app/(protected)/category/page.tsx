@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TxType } from "@/lib/api/common_enum";
 import { useCategory } from "@/lib/api/hook/category_hook";
 import { useItem } from "@/lib/api/hook/item_hook";
-import { useJoinedOrganization } from "@/lib/api/hook/joined_organization_hook";
 import { useOrganizations } from "@/lib/api/organization_context";
 import { EditAllCategoryDto } from "@/lib/api/request/category_request";
 import { CategoryResponseDto } from "@/lib/api/response/category_response";

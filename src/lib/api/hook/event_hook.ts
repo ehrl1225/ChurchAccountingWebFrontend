@@ -19,10 +19,10 @@ export const useEvent = () => {
         }
     }
 
-    const get_event = async (search_event_param:SearchEventParams):Promise<EventResponseDTO[] | null> =>  {
+    const get_event = async (search_event_param:SearchEventParams):Promise<EventResponseDTO[]> =>  {
         try{
             const params = new URLSearchParams({
-                "organization_id":search_event_param.organizatino_id.toString(),
+                "organization_id":search_event_param.organization_id.toString(),
                 "year":search_event_param.year.toString(),
             });
             const response = await axios.get<EventResponseDTO[]>(`${domain_url}?${params.toString()}`, {
@@ -32,7 +32,7 @@ export const useEvent = () => {
         }catch(error) {
 
         }
-        return null;
+        return [];
     }
 
     const update_event = async (edit_event:EditEventDto) => {

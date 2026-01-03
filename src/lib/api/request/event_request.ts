@@ -24,6 +24,6 @@ export interface EditEventDto{
 };
 
 export interface SearchEventParams{
-    organizatino_id: number;
+    organization_id: number;
     year: number;
 }

@@ -7,32 +7,60 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { useEvent } from "@/lib/api/hook/event_hook";
+import { useOrganizations } from "@/lib/api/organization_context";
+import { CreateEventDTO } from "@/lib/api/request/event_request";
+import { EventResponseDTO } from "@/lib/api/response/event_response";
 import { Pencil, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function EventPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [editingEvent, setEditingEvent] = useState<EventResponseDTO | null>(null);
   const [name, setName] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
   const [description, setDescription] = useState('');
+  const {selectedOrgId, selectedYear, organizations} = useOrganizations();
+  const [events, setEvents] = useState<EventResponseDTO[]>([]);
+
+  const {get_event, create_event, update_event} = useEvent();
+  const currentOrganization = organizations.find(org => org.id === selectedOrgId);
+
+  const fetchEvents = async () => {
+    if (selectedOrgId === null){
+      return;
+    }
+    if (selectedYear === null) {
+      return;
+    }
+    const data = await get_event({
+      organization_id: selectedOrgId,
+      year:selectedYear,
+    });
+    setEvents(data);
+  }
+
+  useEffect(()=>{
+    fetchEvents();
+  },[selectedOrgId, selectedYear])
 
   const resetForm = () => {
     setName('');
-    setStartDate('');
-    setEndDate('');
+    setStartDate("");
+    setEndDate("");
     setDescription('');
     setEditingEvent(null);
   };
 
-  const handleOpenDialog = (event?: Event) => {
+  const handleOpenDialog = (event?: EventResponseDTO) => {
+
     if (event) {
       setEditingEvent(event);
       setName(event.name);
-      setStartDate(event.startDate);
-      setEndDate(event.endDate);
-      setDescription(event.description);
+      setStartDate(event.start_date);
+      setEndDate(event.end_date);
+      setDescription(event.description?event.description:"");
     } else {
       resetForm();
     }
@@ -43,15 +71,29 @@ export default function EventPage() {
     e.preventDefault();
     const eventData = {
       name,
-      startDate,
-      endDate,
+      start_date:new Date(startDate),
+      end_date:new Date(endDate),
       description,
     };
-
+    if (selectedOrgId === null){
+      return;
+    }
+    if (selectedYear===null){
+      return;
+    }
     if (editingEvent) {
-      onUpdate(editingEvent.id, { ...eventData, organizationId: editingEvent.organizationId, year: editingEvent.year });
+      update_event({
+        ...eventData,
+        event_id:editingEvent.id,
+        organization_id:selectedOrgId,
+        event_name:name,
+      });
     } else {
-      onAdd(eventData);
+      create_event({
+        ...eventData,
+        organization_id:selectedOrgId,
+        year:selectedYear
+      })
     }
     
     setDialogOpen(false);
@@ -60,11 +102,13 @@ export default function EventPage() {
 
   const hasWritePermission = () => {
     if (!currentOrganization) return false;
-    const member = currentOrganization.members.find(m => m.userId === currentUserId);
-    return member?.permission === 'write' || member?.permission === 'admin' || member?.permission === 'owner' || currentOrganization.createdBy === currentUserId;
+    return currentOrganization.my_role === "READ_WRITE" || currentOrganization.my_role === "ADMIN" || currentOrganization.my_role === "OWNER";
   };
 
   const canEdit = hasWritePermission();
+  const onDelete = async (id:Number) => {
+
+  }
 
   return (
     <Card>
@@ -175,8 +219,8 @@ export default function EventPage() {
                   {events.map((event) => (
                     <TableRow key={event.id}>
                       <TableCell>{event.name}</TableCell>
-                      <TableCell>{event.startDate}</TableCell>
-                      <TableCell>{event.endDate}</TableCell>
+                      <TableCell>{event.start_date}</TableCell>
+                      <TableCell>{event.end_date}</TableCell>
                       <TableCell className="max-w-xs truncate">{event.description || '-'}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
@@ -233,7 +277,7 @@ export default function EventPage() {
                     <div className="space-y-2 text-sm">
                       <div>
                         <span className="text-gray-500">기간:</span>
-                        <p>{event.startDate} ~ {event.endDate}</p>
+                        <p>{event.start_date} ~ {event.end_date}</p>
                       </div>
                       {event.description && (
                         <div>
