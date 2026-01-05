@@ -1,11 +1,12 @@
+import { TxType } from "../common_enum";
 import { SummaryType } from "../response/receipt_response";
 
 export interface CreateReceiptDto{
     receipt_image_url: string | null;
-    paper_date: Date;
-    actural_date: Date | null;
+    paper_date: string;
+    actual_date: string | null;
     name: string;
-    tx_type: string;
+    tx_type: TxType;
     amount:number;
     category_id: number;
     item_id: number;
@@ -23,16 +24,16 @@ export interface DeleteReceiptParams{
 export interface EditReceiptDto{
     organization_id:number;
     receipt_id: number;
-    receipt_image_url: string;
-    paper_date: Date;
-    actual_date: Date;
+    receipt_image_url: string | null;
+    paper_date: string;
+    actual_date: string | null;
     name: string;
-    tx_type: string;
+    tx_type: TxType;
     amount: number;
     category_id: number;
     item_id: number;
-    event_id: number;
-    etc:string;
+    event_id: number | null;
+    etc:string | null;
 }
 
 export interface SearchAllReceiptParams{

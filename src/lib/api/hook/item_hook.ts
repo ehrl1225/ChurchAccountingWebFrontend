@@ -3,7 +3,7 @@ import { CreateItemDto, DeleteItemParams, EditItemDto } from "../request/item_re
 
 
 export const useItem = () => {
-    const domain_url = `${process.env.NEXT_PUBLIC_SERVER_URL}/ledger/item/`;
+    const domain_url = `${process.env.NEXT_PUBLIC_SERVER_URL}/ledger/item`;
 
     const create_item = async (create_item:CreateItemDto) => {
         try{

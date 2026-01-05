@@ -4,7 +4,7 @@ import { CategoryResponseDto } from "../response/category_response";
 
 
 export const useCategory = () => {
-    const domain_url = `${process.env.NEXT_PUBLIC_SERVER_URL}/ledger/category`;
+    const domain_url = `${process.env.NEXT_PUBLIC_SERVER_URL}/ledger/category/`;
     
     const create_category = async (create_category:CreateCategoryDTO) => {
         try {
@@ -53,7 +53,7 @@ export const useCategory = () => {
 
     const update_category = async (edit_category:EditCategoryDto) => {
         try{
-            const response = await axios.put(domain_url,edit_category, {
+            const response = await axios.put(`${domain_url}`,edit_category, {
                 headers:{
                     "Content_Type":"application/json"
                 },
@@ -66,7 +66,7 @@ export const useCategory = () => {
 
     const update_all_category = async (edit_all_dto:EditAllDto) => {
         try{
-            const response = await axios.put(`${domain_url}/all`,edit_all_dto, {
+            const response = await axios.put(`${domain_url}all`,edit_all_dto, {
                 headers: {
                     "Content_Type":"application/json",
                 },
