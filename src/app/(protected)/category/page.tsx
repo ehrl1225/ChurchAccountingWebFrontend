@@ -20,6 +20,7 @@ export default function CategoryPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [categoryType, setCategoryType] = useState<TxType>("OUTCOME");
+  const [currentCategoryType, setCurrentCategoryType] = useState<TxType>("OUTCOME");
   const [primaryCategory, setPrimaryCategory] = useState('');
   const [secondaryCategory, setSecondaryCategory] = useState('');
   const [isNewPrimary, setIsNewPrimary] = useState(true);
@@ -28,7 +29,7 @@ export default function CategoryPage() {
   const [categories, setCategories] = useState<CategoryResponseDto[]>([]);
   const {organizations, selectedOrgId, selectedYear} = useOrganizations();
   const {get_categories, import_category, update_all_category, create_category} = useCategory();
-  const {} = useItem();
+  const {create_item} = useItem();
 
   const selectedOrg = organizations.find(org => org.id === selectedOrgId);
   const availableOrganizations = organizations
@@ -63,8 +64,8 @@ export default function CategoryPage() {
   }
 
   useEffect(()=>{
-    fetchCategories(categoryType);
-  },[selectedOrgId, selectedYear,categoryType])
+    fetchCategories(currentCategoryType);
+  },[selectedOrgId, selectedYear, currentCategoryType])
 
   const onAddCategory = async (tx_type:TxType, category:string,item:string) => {
     if (selectedOrgId === null){
@@ -80,8 +81,8 @@ export default function CategoryPage() {
       tx_type:tx_type,
       year:selectedYear,
     });
-    await fetchCategories(categoryType);
   }
+
   const onImportCategories = async () => {
     const orgId = Number(importSourceOrgId);
     const year = Number(importSourceYear);
@@ -97,17 +98,41 @@ export default function CategoryPage() {
        to_organization_id:selectedOrgId,
        to_organization_year:selectedYear,
     });
+    await fetchCategories(currentCategoryType);
 
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const onAddItem = async (category_id:number)=>{
+    if (selectedOrgId === null){
+      return;
+    }
+    if (selectedYear === null){
+      return;
+    }
+    await create_item({
+      organization_id:selectedOrgId,
+      year: selectedYear,
+      category_id,
+      item_name:secondaryCategory
+    })
+
+  }
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    onAddCategory(categoryType, primaryCategory, secondaryCategory);
+    const form = e.target as HTMLFormElement
+    if (isNewPrimary){
+      await onAddCategory(categoryType, primaryCategory, secondaryCategory);
+    }else{
+      const category_id_element = form.elements.namedItem("existingPrimary") as HTMLSelectElement;
+      const category_id = Number(category_id_element.value);
+      await onAddItem(category_id);
+
+    }
     setPrimaryCategory('');
     setSecondaryCategory('');
     setDialogOpen(false);
-    
+    await fetchCategories(currentCategoryType);
   };
 
   const hasWritePermission = () => {
@@ -180,6 +205,7 @@ export default function CategoryPage() {
       year:selectedYear,
       categories:editableCategories
     })
+    await fetchCategories(currentCategoryType);
   };
 
   // 편집 내용 적용
@@ -234,6 +260,10 @@ export default function CategoryPage() {
   };
 
   const onDeleteCategory = (categoryId:Number|null) => {
+    
+  }
+
+  const onDeleteItem = (categoryId:number|null, itemId: number | null) => {
 
   }
 
@@ -485,7 +515,7 @@ export default function CategoryPage() {
         </div>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="OUTCOME" className="w-full" onValueChange={e=>setCategoryType(e as TxType)}>
+        <Tabs defaultValue="OUTCOME" className="w-full" onValueChange={e=>setCurrentCategoryType(e as TxType)}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="OUTCOME" className="flex items-center gap-2">
               <TrendingDown className="w-4 h-4" />

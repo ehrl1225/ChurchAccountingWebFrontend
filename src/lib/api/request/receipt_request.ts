@@ -1,3 +1,5 @@
+import { SummaryType } from "../response/receipt_response";
+
 export interface CreateReceiptDto{
     receipt_image_url: string | null;
     paper_date: Date;
@@ -38,3 +40,10 @@ export interface SearchAllReceiptParams{
     year: number;
 }
 
+export interface ReceiptSummaryParams{
+    summary_type:SummaryType;
+    month_number: number | null;
+    event_id: number | null;
+    organization_id: number;
+    year: number;
+}

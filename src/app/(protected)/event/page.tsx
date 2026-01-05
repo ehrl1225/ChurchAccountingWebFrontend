@@ -24,7 +24,7 @@ export default function EventPage() {
   const {selectedOrgId, selectedYear, organizations} = useOrganizations();
   const [events, setEvents] = useState<EventResponseDTO[]>([]);
 
-  const {get_event, create_event, update_event} = useEvent();
+  const {get_event, create_event, update_event, delete_event} = useEvent();
   const currentOrganization = organizations.find(org => org.id === selectedOrgId);
 
   const fetchEvents = async () => {
@@ -67,7 +67,7 @@ export default function EventPage() {
     setDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const eventData = {
       name,
@@ -82,22 +82,22 @@ export default function EventPage() {
       return;
     }
     if (editingEvent) {
-      update_event({
+      await update_event({
         ...eventData,
         event_id:editingEvent.id,
         organization_id:selectedOrgId,
         event_name:name,
       });
     } else {
-      create_event({
+      await create_event({
         ...eventData,
         organization_id:selectedOrgId,
         year:selectedYear
       })
     }
-    
     setDialogOpen(false);
     resetForm();
+    await fetchEvents();
   };
 
   const hasWritePermission = () => {
@@ -106,8 +106,16 @@ export default function EventPage() {
   };
 
   const canEdit = hasWritePermission();
-  const onDelete = async (id:Number) => {
 
+  const onDelete = async (id:number) => {
+    if (selectedOrgId === null) {
+      return;
+    }
+    await delete_event({
+      organization_id:selectedOrgId,
+      event_id:id
+    });
+    await fetchEvents();
   }
 
   return (
@@ -150,6 +158,7 @@ export default function EventPage() {
                     <Input
                       id="startDate"
                       type="date"
+                      max={`${selectedYear}-12-31`}
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
                       required
@@ -161,6 +170,8 @@ export default function EventPage() {
                     <Input
                       id="endDate"
                       type="date"
+                      min={startDate}
+                      max={`${selectedYear}-12-31`}
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
                       required

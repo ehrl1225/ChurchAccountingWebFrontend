@@ -4,7 +4,7 @@ import { CategoryResponseDto } from "../response/category_response";
 
 
 export const useCategory = () => {
-    const domain_url = `${process.env.NEXT_PUBLIC_SERVER_URL}/ledger/category/`;
+    const domain_url = `${process.env.NEXT_PUBLIC_SERVER_URL}/ledger/category`;
     
     const create_category = async (create_category:CreateCategoryDTO) => {
         try {

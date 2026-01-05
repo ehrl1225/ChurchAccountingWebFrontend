@@ -1,9 +1,10 @@
 import axios from "axios";
-import { CreateReceiptDto, DeleteReceiptParams, EditReceiptDto, SearchAllReceiptParams } from "../request/receipt_request";
+import { CreateReceiptDto, DeleteReceiptParams, EditReceiptDto, ReceiptSummaryParams, SearchAllReceiptParams } from "../request/receipt_request";
+import { ReceiptResponseDto, ReceiptSummaryDto, SummaryType } from "../response/receipt_response";
 
 
 export const useReceipt = () => {
-    const domain_url = `${process.env.NEXT_PUBLIC_SERVER_URL}/ledger/receipt/`;
+    const domain_url = `${process.env.NEXT_PUBLIC_SERVER_URL}/ledger/receipt`;
 
     const create_receipt = async (create_receipt:CreateReceiptDto) =>{
         try{
@@ -18,18 +19,43 @@ export const useReceipt = () => {
         }
     }
 
-    const get_all_receipts = async (search_receipt_params:SearchAllReceiptParams) => {
+    const get_all_receipts = async (search_receipt_params:SearchAllReceiptParams):Promise<ReceiptResponseDto[]> => {
         try{
             const params = new URLSearchParams({
                 "organization_id":search_receipt_params.organization_id.toString(),
                 "year":search_receipt_params.year.toString()
             })
-            const response = await axios.get(`${domain_url}?${params}`, {
+            const response = await axios.get<ReceiptResponseDto[]>(`${domain_url}/all?${params}`, {
                 withCredentials:true,
             })
+            return response.data
         }catch(error){
 
         }
+        return []
+    }
+
+    const get_summary_receipts = async (receiptSummaryParams:ReceiptSummaryParams):Promise<ReceiptSummaryDto | null> => {
+        try{
+            const params = new URLSearchParams({
+                "summary_type":receiptSummaryParams.summary_type,
+                "organization_id":receiptSummaryParams.organization_id.toString(),
+                "year":receiptSummaryParams.year.toString()
+            });
+            if (receiptSummaryParams.month_number !== null){
+                params.append("month_number", receiptSummaryParams.month_number.toString())
+            }
+            if (receiptSummaryParams.event_id !== null){
+                params.append("event_id", receiptSummaryParams.event_id.toString())
+            }
+            const response = await axios.get<ReceiptSummaryDto>(`${domain_url}/summary?${params}`, {
+                withCredentials:true,
+            })
+            return response.data
+        }catch(error){
+
+        }
+        return null
     }
 
     const update_receipt = async (edit_receipt:EditReceiptDto) => {
@@ -64,6 +90,7 @@ export const useReceipt = () => {
     return {
         create_receipt,
         get_all_receipts,
+        get_summary_receipts,
         update_receipt,
         delete_receipt,
     }

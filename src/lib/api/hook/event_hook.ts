@@ -54,7 +54,7 @@ export const useEvent = () => {
                 "organization_id":delete_event_params.organization_id.toString(),
                 "event_id":delete_event_params.event_id.toString(),
             })
-            const response = await axios.delete(domain_url,{
+            const response = await axios.delete(`${domain_url}?${params}`,{
                 withCredentials:true,
             })
         }catch(error){
