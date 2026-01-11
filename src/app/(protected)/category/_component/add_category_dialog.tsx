@@ -14,10 +14,10 @@ import { useState } from "react";
 
 export interface addCategoryInput{
     fetchCategories : () => Promise<void>,
-    getExistingPrimaryCategories: () => CategoryResponseDto[]
+    categories: CategoryResponseDto[]
 };
 
-export function AddCategoryDialog({fetchCategories, getExistingPrimaryCategories}:addCategoryInput){
+export function AddCategoryDialog({fetchCategories, categories}:addCategoryInput){
     const [dialogOpen, setDialogOpen] = useState(false);
     const [categoryType, setCategoryType] = useState<TxType>("OUTCOME");
     const [primaryCategory, setPrimaryCategory] = useState('');
@@ -27,6 +27,10 @@ export function AddCategoryDialog({fetchCategories, getExistingPrimaryCategories
     const {selectedOrgId, selectedYear} = useOrganizations();
     const {create_category} = useCategory();
     const {create_item} = useItem();
+
+    const getExistingPrimaryCategories = () => {
+        return categories.filter(c => c.tx_type === categoryType)
+    }
     
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();

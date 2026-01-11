@@ -19,34 +19,15 @@ import { AddCategoryDialog } from "./_component/add_category_dialog";
 import { ImportCategoryDialog } from "./_component/import_category_dialog";
 
 export default function CategoryPage() {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [importDialogOpen, setImportDialogOpen] = useState(false);
-  const [categoryType, setCategoryType] = useState<TxType>("OUTCOME");
   const [currentCategoryType, setCurrentCategoryType] = useState<TxType>("OUTCOME");
-  const [primaryCategory, setPrimaryCategory] = useState('');
-  const [secondaryCategory, setSecondaryCategory] = useState('');
-  const [isNewPrimary, setIsNewPrimary] = useState(true);
-  const [importSourceOrgId, setImportSourceOrgId] = useState('');
-  const [importSourceYear, setImportSourceYear] = useState('');
   const [categories, setCategories] = useState<CategoryResponseDto[]>([]);
   const {organizations, selectedOrgId, selectedYear} = useOrganizations();
-  const {get_categories, import_category, update_all_category, create_category, delete_category} = useCategory();
-  const {create_item, delete_item} = useItem();
+  const {get_categories, update_all_category, delete_category} = useCategory();
+  const {delete_item} = useItem();
 
   const selectedOrg = organizations.find(org => org.id === selectedOrgId);
-  const importOrg = organizations.find(org => org.id.toString() === importSourceOrgId);
   const availableOrganizations = organizations
-  
-  
-  // 선택된 조직의 연도 범위에 따라 연도 목록 생성
-  const availableYears = importOrg && selectedOrg
-  ? Array.from(
-      { length: importOrg.end_year - importOrg.start_year + 1 }, 
-      (_, i) => importOrg.start_year + i
-      ).filter(e=>e!==selectedYear || importOrg.id !== selectedOrg.id)
-  : [];
-  
-  
+
   // 일괄 편집 모드 상태
   const [isEditMode, setIsEditMode] = useState(false);
   const [editableCategories, setEditableCategories] = useState<EditAllCategoryDto[]>([]);
@@ -70,27 +51,8 @@ export default function CategoryPage() {
 
   useEffect(()=>{
     fetchCategories(null);
-  },[selectedOrgId, selectedYear, currentCategoryType])
+  },[selectedOrgId, selectedYear])
 
-
-  const onImportCategories = async () => {
-    const orgId = Number(importSourceOrgId);
-    const year = Number(importSourceYear);
-    if (selectedOrgId === null){
-      return;
-    }
-    if (selectedYear === null){
-      return;
-    }
-    await import_category({
-      from_organization_id:orgId,
-      from_organization_year:year,
-      to_organization_id:selectedOrgId,
-      to_organization_year:selectedYear,
-    });
-    await fetchCategories(currentCategoryType);
-
-  }
 
   const hasWritePermission = () => {
     if (selectedOrg){
@@ -101,15 +63,6 @@ export default function CategoryPage() {
 
   const canEdit = hasWritePermission();
 
-  const handleImport = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (importSourceOrgId && importSourceYear) {
-      onImportCategories();
-      setImportDialogOpen(false);
-      setImportSourceOrgId('');
-      setImportSourceYear('');
-    }
-  }
 
 
   // 현재 탭의 카테고리만 필터링
@@ -120,10 +73,6 @@ export default function CategoryPage() {
     return categories.filter(c => c.tx_type === type);
   };
 
-  // 카테고리 타입별로 기존 관 목록 가져오기
-  const getExistingPrimaryCategories = () => {
-    return categories.filter(c => c.tx_type === categoryType);
-  };
 
   // 편집 모드 시작
   const startEditMode = () => {
@@ -288,7 +237,7 @@ export default function CategoryPage() {
           <div className="flex flex-col sm:flex-row gap-2">
             {canEdit && !isEditMode && (
               <>
-                <AddCategoryDialog fetchCategories={()=>fetchCategories(null)} getExistingPrimaryCategories={getExistingPrimaryCategories}/>
+                <AddCategoryDialog fetchCategories={()=>fetchCategories(null)} categories={categories}/>
                 {availableOrganizations.length > 0 && (
                   <ImportCategoryDialog fetchCategories={()=>fetchCategories(null)}/>
                 )}
