@@ -6,7 +6,7 @@ import { useMember } from "./hook/member_hook";
 import { LoginFormDTO } from "./request/member_request";
 import { Card, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface AuthContextType {
     member: MemberDTO | null;
@@ -22,6 +22,7 @@ export const AuthProvider = ({children}: {children: ReactNode})=>{
     const {login_request, logout_request, me_request} = useMember();
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     useEffect(() => {
         const checkUserStatus = async () => {
@@ -33,12 +34,22 @@ export const AuthProvider = ({children}: {children: ReactNode})=>{
     }, []);
 
     const login = async ({email, password}: LoginFormDTO) => {
-        setMember(await login_request({email:email, password:password}));
+        const member = await login_request({email:email, password:password});
+        setMember(member);
+        if (member){
+            const redirect_url = searchParams.get('redirect');
+            if (redirect_url){
+                router.push(redirect_url);
+            }else{
+                router.push('/');
+            }
+        }
     }
 
     const logout = async () => {
         await logout_request();
         setMember(null);
+        router.push('/auth/login');
     }
 
     const isAuthenticated = !!member;

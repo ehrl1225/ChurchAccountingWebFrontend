@@ -1,17 +1,16 @@
-import axios from "axios";
+import axiosInstance from "../axios_instance";
 import { OrganizationRequestDto } from "../request/organization_request"
 
 
 export const useOrganization = () => {
-    const domain_url = `${process.env.NEXT_PUBLIC_SERVER_URL}/organization`;
+    const domain_url = `/organization`;
 
     const create_organization = async (organization:OrganizationRequestDto) => {
         try {
-            const response = await axios.post(domain_url, organization,{
+            const response = await axiosInstance.post(domain_url, organization,{
                 headers:{
                     "Content_Type":"application/json",
                 },
-                withCredentials:true,
             })
         }catch (error) {
 
@@ -20,11 +19,10 @@ export const useOrganization = () => {
 
     const update_organization = async (organization_id:number, organization:OrganizationRequestDto) => {
         try{
-            const response = await axios.put(`${domain_url}/${organization_id}`, organization, {
+            const response = await axiosInstance.put(`${domain_url}/${organization_id}`, organization, {
                 headers:{
                     "Content_Type":"application/json",
                 },
-                withCredentials:true,
             });
         }catch(error){
 
@@ -33,8 +31,7 @@ export const useOrganization = () => {
 
     const delete_organization = async (organization_id:number) => {
         try{
-            const response = await axios.delete(`${domain_url}/${organization_id}`,{
-                withCredentials:true,
+            const response = await axiosInstance.delete(`${domain_url}/${organization_id}`,{
             })
         }catch(error) {
 

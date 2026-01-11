@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from "@/lib/api/auth_context";
 import { usePathname, useRouter } from "next/navigation";
 import { Navigation, Page } from "./_component/Navigation";
 import login_page from "./auth/login/page";
+import { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,9 +34,11 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <AuthProvider>
-            {children}
-        </AuthProvider>
+        <Suspense>
+          <AuthProvider>
+              {children}
+          </AuthProvider>
+        </Suspense>
       </body>
     </html>
   );

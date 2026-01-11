@@ -1,18 +1,17 @@
-import axios from "axios";
+import axiosInstance from "../axios_instance";
 import { CreateReceiptDto, DeleteReceiptParams, EditReceiptDto, ReceiptSummaryParams, SearchAllReceiptParams } from "../request/receipt_request";
 import { ReceiptResponseDto, ReceiptSummaryDto, SummaryType } from "../response/receipt_response";
 
 
 export const useReceipt = () => {
-    const domain_url = `${process.env.NEXT_PUBLIC_SERVER_URL}/ledger/receipt`;
+    const domain_url = `/ledger/receipt`;
 
     const create_receipt = async (create_receipt:CreateReceiptDto) =>{
         try{
-            const response = await axios.post(domain_url, create_receipt, {
+            const response = await axiosInstance.post(domain_url, create_receipt, {
                 headers: {
                     "Content_Type": "application/json"
                 },
-                withCredentials:true,
             })
         } catch(error){
 
@@ -25,8 +24,7 @@ export const useReceipt = () => {
                 "organization_id":search_receipt_params.organization_id.toString(),
                 "year":search_receipt_params.year.toString()
             })
-            const response = await axios.get<ReceiptResponseDto[]>(`${domain_url}/all?${params}`, {
-                withCredentials:true,
+            const response = await axiosInstance.get<ReceiptResponseDto[]>(`${domain_url}/all?${params}`, {
             })
             return response.data
         }catch(error){
@@ -48,8 +46,7 @@ export const useReceipt = () => {
             if (receiptSummaryParams.event_id !== null){
                 params.append("event_id", receiptSummaryParams.event_id.toString())
             }
-            const response = await axios.get<ReceiptSummaryDto>(`${domain_url}/summary?${params}`, {
-                withCredentials:true,
+            const response = await axiosInstance.get<ReceiptSummaryDto>(`${domain_url}/summary?${params}`, {
             })
             return response.data
         }catch(error){
@@ -60,11 +57,10 @@ export const useReceipt = () => {
 
     const update_receipt = async (edit_receipt:EditReceiptDto) => {
         try{
-            const response = await axios.put(domain_url, edit_receipt, {
+            const response = await axiosInstance.put(domain_url, edit_receipt, {
                 headers:{
                     "Content_Type":"application/json",
                 },
-                withCredentials:true,
             })
         }catch(error){
 
@@ -77,8 +73,7 @@ export const useReceipt = () => {
                 "organization_id":delete_receipt_params.organization_id.toString(),
                 "receipt_id":delete_receipt_params.receipt_id.toString()
             })
-            const response = await axios.delete(domain_url, {
-                withCredentials:true,
+            const response = await axiosInstance.delete(domain_url + `?${params.toString()}`, {
             })
         }catch(error){
 
