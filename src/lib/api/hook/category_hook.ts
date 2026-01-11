@@ -30,8 +30,10 @@ export const useCategory = () => {
             const params = new URLSearchParams({
                 organization_id:search_category_params.organization_id.toString(),
                 year:search_category_params.year.toString(),
-                tx_type:search_category_params.tx_type.toString()
             });
+            if (search_category_params.tx_type != null){
+                params.set("tx_type", search_category_params.tx_type);
+            }
             const response = await axiosInstance.get<CategoryResponseDto[]>(`${domain_url}/?${params.toString()}`, {
             });
             return response.data;

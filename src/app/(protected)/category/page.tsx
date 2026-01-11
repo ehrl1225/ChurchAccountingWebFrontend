@@ -15,6 +15,7 @@ import { EditAllCategoryDto } from "@/lib/api/request/category_request";
 import { CategoryResponseDto } from "@/lib/api/response/category_response";
 import { Check, Pencil, Plus, Trash2, TrendingDown, TrendingUp, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { AddCategoryDialog } from "./_component/add_category_dialog";
 
 export default function CategoryPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -51,7 +52,7 @@ export default function CategoryPage() {
   const [editingSecondaryId, setEditingSecondaryId] = useState<Number | null>(null);
   const [editingSecondaryValue, setEditingSecondaryValue] = useState('');
 
-  const fetchCategories = async (tx_type:TxType) => {
+  const fetchCategories = async (tx_type:TxType | null) => {
     if (selectedOrgId === null){
       return;
     }
@@ -67,24 +68,9 @@ export default function CategoryPage() {
   }
 
   useEffect(()=>{
-    fetchCategories(currentCategoryType);
+    fetchCategories(null);
   },[selectedOrgId, selectedYear, currentCategoryType])
 
-  const onAddCategory = async (tx_type:TxType, category:string,item:string) => {
-    if (selectedOrgId === null){
-      return;
-    }
-    if (selectedYear === null) {
-      return;
-    }
-    await create_category({
-      category_name:category,
-      item_name:item,
-      organization_id:selectedOrgId,
-      tx_type:tx_type,
-      year:selectedYear,
-    });
-  }
 
   const onImportCategories = async () => {
     const orgId = Number(importSourceOrgId);
@@ -104,39 +90,6 @@ export default function CategoryPage() {
     await fetchCategories(currentCategoryType);
 
   }
-
-  const onAddItem = async (category_id:number)=>{
-    if (selectedOrgId === null){
-      return;
-    }
-    if (selectedYear === null){
-      return;
-    }
-    await create_item({
-      organization_id:selectedOrgId,
-      year: selectedYear,
-      category_id,
-      item_name:secondaryCategory
-    })
-
-  }
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = e.target as HTMLFormElement
-    if (isNewPrimary){
-      await onAddCategory(categoryType, primaryCategory, secondaryCategory);
-    }else{
-      const category_id_element = form.elements.namedItem("existingPrimary") as HTMLSelectElement;
-      const category_id = Number(category_id_element.value);
-      await onAddItem(category_id);
-
-    }
-    setPrimaryCategory('');
-    setSecondaryCategory('');
-    setDialogOpen(false);
-    await fetchCategories(currentCategoryType);
-  };
 
   const hasWritePermission = () => {
     if (selectedOrg){
@@ -334,128 +287,7 @@ export default function CategoryPage() {
           <div className="flex flex-col sm:flex-row gap-2">
             {canEdit && !isEditMode && (
               <>
-                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="w-full sm:w-auto">
-                      <Plus className="w-4 h-4 mr-2" />
-                      카테고리 추가
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="w-[95vw] max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>새 카테고리 추가</DialogTitle>
-                      <DialogDescription>
-                        관(1차 카테고리)과 항목(2차 카테고리)을 추가하세요
-                      </DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>카테고리 타입</Label>
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button
-                            type="button"
-                            variant={categoryType === "INCOME" ? 'default' : 'outline'}
-                            onClick={() => {
-                              setCategoryType("INCOME");
-                              setPrimaryCategory('');
-                            }}
-                            className="w-full"
-                          >
-                            <TrendingUp className="w-4 h-4 mr-2" />
-                            수입
-                          </Button>
-                          <Button
-                            type="button"
-                            variant={categoryType === "OUTCOME" ? 'default' : 'outline'}
-                            onClick={() => {
-                              setCategoryType("OUTCOME");
-                              setPrimaryCategory('');
-                            }}
-                            className="w-full"
-                          >
-                            <TrendingDown className="w-4 h-4 mr-2" />
-                            지출
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>관 (1차 카테고리) 선택 방식</Label>
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button
-                            type="button"
-                            variant={isNewPrimary ? 'default' : 'outline'}
-                            onClick={() => {
-                              setIsNewPrimary(true);
-                              setPrimaryCategory('');
-                            }}
-                            className="w-full"
-                          >
-                            새로 만들기
-                          </Button>
-                          <Button
-                            type="button"
-                            variant={!isNewPrimary ? 'default' : 'outline'}
-                            onClick={() => {
-                              setIsNewPrimary(false);
-                              setPrimaryCategory('');
-                            }}
-                            className="w-full"
-                          >
-                            기존 관에 추가
-                          </Button>
-                        </div>
-                      </div>
-
-                      {isNewPrimary ? (
-                        <div className="space-y-2">
-                          <Label htmlFor="newPrimary">새 관 이름</Label>
-                          <Input
-                            id="newPrimary"
-                            type="text"
-                            placeholder="예: 사업비"
-                            value={primaryCategory}
-                            onChange={(e) => setPrimaryCategory(e.target.value)}
-                            required
-                          />
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          <Label htmlFor="existingPrimary">기존 관 선택</Label>
-                          <select
-                            id="existingPrimary"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                            value={primaryCategory}
-                            onChange={(e) => setPrimaryCategory(e.target.value)}
-                            required
-                          >
-                            <option value="">선택하세요</option>
-                            {getExistingPrimaryCategories().map((category) => (
-                              <option key={category.id} value={category.id}>
-                                {category.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
-
-                      <div className="space-y-2">
-                        <Label htmlFor="secondary">항목 (2차 카테고리)</Label>
-                        <Input
-                          id="secondary"
-                          type="text"
-                          placeholder="예: 행사비"
-                          value={secondaryCategory}
-                          onChange={(e) => setSecondaryCategory(e.target.value)}
-                        />
-                      </div>
-
-                      <Button type="submit" className="w-full">
-                        추가
-                      </Button>
-                    </form>
-                  </DialogContent>
-                </Dialog>
+                <AddCategoryDialog fetchCategories={()=>fetchCategories(null)} getExistingPrimaryCategories={getExistingPrimaryCategories}></AddCategoryDialog>
                 {availableOrganizations.length > 0 && (
                   <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
                     <DialogTrigger asChild>
