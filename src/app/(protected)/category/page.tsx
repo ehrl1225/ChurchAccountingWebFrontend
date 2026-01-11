@@ -28,19 +28,22 @@ export default function CategoryPage() {
   const [importSourceYear, setImportSourceYear] = useState('');
   const [categories, setCategories] = useState<CategoryResponseDto[]>([]);
   const {organizations, selectedOrgId, selectedYear} = useOrganizations();
-  const {get_categories, import_category, update_all_category, create_category} = useCategory();
-  const {create_item} = useItem();
+  const {get_categories, import_category, update_all_category, create_category, delete_category} = useCategory();
+  const {create_item, delete_item} = useItem();
 
   const selectedOrg = organizations.find(org => org.id === selectedOrgId);
+  const importOrg = organizations.find(org => org.id.toString() === importSourceOrgId);
   const availableOrganizations = organizations
   
-    // 선택된 조직의 연도 범위에 따라 연도 목록 생성
-    const availableYears = selectedOrg 
-    ? Array.from(
-        { length: selectedOrg.end_year - selectedOrg.start_year + 1 }, 
-        (_, i) => selectedOrg.start_year + i
-        ).filter(e=>e!==selectedYear)
-    : [];
+  
+  // 선택된 조직의 연도 범위에 따라 연도 목록 생성
+  const availableYears = importOrg && selectedOrg
+  ? Array.from(
+      { length: importOrg.end_year - importOrg.start_year + 1 }, 
+      (_, i) => importOrg.start_year + i
+      ).filter(e=>e!==selectedYear || importOrg.id !== selectedOrg.id)
+  : [];
+  
   
   // 일괄 편집 모드 상태
   const [isEditMode, setIsEditMode] = useState(false);
@@ -93,10 +96,10 @@ export default function CategoryPage() {
       return;
     }
     await import_category({
-       from_organization_id:orgId,
-       from_organization_year:year,
-       to_organization_id:selectedOrgId,
-       to_organization_year:selectedYear,
+      from_organization_id:orgId,
+      from_organization_year:year,
+      to_organization_id:selectedOrgId,
+      to_organization_year:selectedYear,
     });
     await fetchCategories(currentCategoryType);
 
@@ -259,11 +262,35 @@ export default function CategoryPage() {
     }));
   };
 
-  const onDeleteCategory = (categoryId:Number|null) => {
-    
+  const onDeleteCategory = async (categoryId:number|null) => {
+    if (categoryId === null) {
+      return;
+    }
+    if (selectedOrgId === null){
+      return;
+    }
+    await delete_category({
+      category_id:categoryId,
+      organization_id:selectedOrgId
+    })
   }
 
-  const onDeleteItem = (categoryId:number|null, itemId: number | null) => {
+  const onDeleteItem = async (categoryId:number|null, itemId: number | null) => {
+    if (categoryId === null){
+      return;
+    }
+    if (itemId === null){
+      return;
+    }
+    if (selectedOrgId === null){
+      return;
+    }
+    await delete_item({
+      category_id:categoryId,
+      item_id:itemId,
+      organization_id:selectedOrgId
+    })
+    await fetchCategories(currentCategoryType);
 
   }
 
@@ -583,7 +610,9 @@ export default function CategoryPage() {
                                     autoFocus
                                     onKeyDown={(e) => {
                                       if (e.key === 'Enter') {
-                                        saveEditingSecondary(category.id, secondary.id, secondary.name);
+                                        if (isEditMode){
+                                          saveEditingSecondary(category.id, secondary.id, secondary.name);
+                                        }
                                       } else if (e.key === 'Escape') {
                                         cancelEditingSecondary();
                                       }
@@ -609,7 +638,7 @@ export default function CategoryPage() {
                               ) : (
                                 <Badge variant="secondary" className="flex items-center gap-2">
                                   {secondary.name}
-                                  {isEditMode && (
+                                  {canEdit && (
                                     <>
                                       <button
                                         onClick={() => startEditingSecondary(secondary.id, secondary.name)}
@@ -618,20 +647,12 @@ export default function CategoryPage() {
                                         <Pencil className="w-3 h-3" />
                                       </button>
                                       <button
-                                        onClick={() => deleteSecondaryInEditMode(category.id, secondary.id)}
+                                        onClick={() => isEditMode ? deleteSecondaryInEditMode(category.id, secondary.id): onDeleteItem(category.id, secondary.id)}
                                         className="hover:text-red-600"
                                       >
                                         ×
                                       </button>
                                     </>
-                                  )}
-                                  {canEdit && !isEditMode && (
-                                    <button
-                                      onClick={() => onDeleteCategory(category.id)}
-                                      className="ml-1 hover:text-red-600"
-                                    >
-                                      ×
-                                    </button>
                                   )}
                                 </Badge>
                               )}
@@ -728,7 +749,7 @@ export default function CategoryPage() {
                               ) : (
                                 <Badge variant="secondary" className="flex items-center gap-2">
                                   {secondary.name}
-                                  {isEditMode && (
+                                  {canEdit && (
                                     <>
                                       <button
                                         onClick={() => startEditingSecondary(secondary.id, secondary.name)}
@@ -737,20 +758,12 @@ export default function CategoryPage() {
                                         <Pencil className="w-3 h-3" />
                                       </button>
                                       <button
-                                        onClick={() => deleteSecondaryInEditMode(category.id, secondary.id)}
+                                        onClick={() => isEditMode ? deleteSecondaryInEditMode(category.id, secondary.id) : onDeleteItem(category.id, secondary.id)}
                                         className="hover:text-red-600"
                                       >
                                         ×
                                       </button>
                                     </>
-                                  )}
-                                  {canEdit && !isEditMode && (
-                                    <button
-                                      onClick={() => onDeleteCategory(category.id)}
-                                      className="ml-1 hover:text-red-600"
-                                    >
-                                      ×
-                                    </button>
                                   )}
                                 </Badge>
                               )}
