@@ -8,10 +8,7 @@ export const useReceipt = () => {
 
     const create_receipt = async (create_receipt:CreateReceiptDto) =>{
         try{
-            const response = await axiosInstance.post(domain_url, create_receipt, {
-                headers: {
-                    "Content_Type": "application/json"
-                },
+            const response = await axiosInstance.post(`${domain_url}/`, create_receipt, {
             })
         } catch(error){
 
@@ -57,10 +54,7 @@ export const useReceipt = () => {
 
     const update_receipt = async (edit_receipt:EditReceiptDto) => {
         try{
-            const response = await axiosInstance.put(domain_url, edit_receipt, {
-                headers:{
-                    "Content_Type":"application/json",
-                },
+            const response = await axiosInstance.put(`${domain_url}/`, edit_receipt, {
             })
         }catch(error){
 
@@ -73,7 +67,7 @@ export const useReceipt = () => {
                 "organization_id":delete_receipt_params.organization_id.toString(),
                 "receipt_id":delete_receipt_params.receipt_id.toString()
             })
-            const response = await axiosInstance.delete(domain_url + `?${params.toString()}`, {
+            const response = await axiosInstance.delete(`${domain_url}/?${params.toString()}`, {
             })
         }catch(error){
 

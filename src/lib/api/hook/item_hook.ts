@@ -7,10 +7,7 @@ export const useItem = () => {
 
     const create_item = async (create_item:CreateItemDto) => {
         try{
-            const response = await axiosInstance.post(domain_url,create_item, {
-                headers:{
-                    "Content_Type":"application/json"
-                },
+            const response = await axiosInstance.post(`${domain_url}/`,create_item, {
             })
 
         } catch (error) {
@@ -20,10 +17,7 @@ export const useItem = () => {
 
     const update_item = async (edit_item:EditItemDto) => {
         try{
-            const response = await axiosInstance.put(domain_url, edit_item, {
-                headers:{
-                    "Content_Type":"application/json"
-                },
+            const response = await axiosInstance.put(`${domain_url}/`, edit_item, {
             })
         }catch (error){
 
@@ -36,7 +30,7 @@ export const useItem = () => {
                 organization_id:delete_item.organization_id.toString(),
                 item_id:delete_item.item_id.toString()
             })
-            await axiosInstance.delete(`${domain_url}?${params.toString()}`);
+            await axiosInstance.delete(`${domain_url}/?${params.toString()}`);
         }catch(error){
 
         }

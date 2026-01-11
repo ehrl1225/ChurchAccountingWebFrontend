@@ -109,19 +109,19 @@ export default function SummaryView() {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>항목</TableHead>
-                                        <TableHead className="text-right">금액</TableHead>
-                                        <TableHead className="text-right">비율</TableHead>
+                                        <TableHead className="w-3/7">항목</TableHead>
+                                        <TableHead className="text-right w-2/7">금액</TableHead>
+                                        <TableHead className="text-right w-2/7">비율</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {s.items.map((i) => (
                                     <TableRow key={i.item_id}>
-                                        <TableCell>{i.item_name}</TableCell>
-                                        <TableCell className={`text-right ${type === "INCOME" ? 'text-blue-600' : 'text-red-600'}`}>
+                                        <TableCell className="w-3/7">{i.item_name}</TableCell>
+                                        <TableCell className={`text-right w-2/7 ${type === "INCOME" ? 'text-blue-600' : 'text-red-600'}`}>
                                         {formatCurrency(i.amount)}원
                                         </TableCell>
-                                        <TableCell className="text-right text-gray-600">
+                                        <TableCell className="text-right text-gray-600 w-2/7">
                                             {((i.amount / s.amount) * 100).toFixed(1)}%
                                         </TableCell>
                                     </TableRow>

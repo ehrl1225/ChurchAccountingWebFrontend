@@ -8,10 +8,7 @@ export const useEvent = () => {
 
     const create_event = async (create_event:CreateEventDTO) => {
         try{
-            const response = await axiosInstance.post(domain_url, create_event, {
-                headers:{
-                    "Content_Type":"application/json",
-                },
+            const response = await axiosInstance.post(`${domain_url}/`, create_event, {
             })
         }catch(error){
 
@@ -24,7 +21,7 @@ export const useEvent = () => {
                 "organization_id":search_event_param.organization_id.toString(),
                 "year":search_event_param.year.toString(),
             });
-            const response = await axiosInstance.get<EventResponseDTO[]>(`${domain_url}?${params.toString()}`, {
+            const response = await axiosInstance.get<EventResponseDTO[]>(`${domain_url}/?${params.toString()}`, {
             })
             return response.data
         }catch(error) {
@@ -35,10 +32,7 @@ export const useEvent = () => {
 
     const update_event = async (edit_event:EditEventDto) => {
         try{
-            const response = await axiosInstance.put(domain_url, edit_event, {
-                headers:{
-                    "Content_Type":"application/json"
-                },
+            const response = await axiosInstance.put(`${domain_url}/`, edit_event, {
             })
         }catch(error) {
 

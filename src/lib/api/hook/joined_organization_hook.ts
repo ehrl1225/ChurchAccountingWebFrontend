@@ -9,9 +9,6 @@ export const useJoinedOrganization = () => {
     const change_role = async (organization_id:number, change_role:ChangeRoleDto) => {
         try{
             const response = await axiosInstance.put(`${domain_url}/${organization_id}`, change_role, {
-                headers:{
-                    "Content_Type":"application/json",
-                },
             })
         }catch(error){
 
@@ -20,10 +17,7 @@ export const useJoinedOrganization = () => {
 
     const list_joined_organizations = async ():Promise<OrganizationResponseDto[]> => {
         try{
-            const response = await axiosInstance.get<OrganizationResponseDto[]>(domain_url, {
-                headers:{
-                    "Content_Type":"application/json",
-                },
+            const response = await axiosInstance.get<OrganizationResponseDto[]>(`${domain_url}/`, {
             })
             return response.data;
         }catch(error){
@@ -39,7 +33,7 @@ export const useJoinedOrganization = () => {
                 "organization_id":delete_joined_organization.organizatino_id.toString(),
                 "joined_organization_id":delete_joined_organization.joined_organization_id.toString(),
             })
-            const response = await axiosInstance.delete(`${domain_url}?${params}`,{
+            const response = await axiosInstance.delete(`${domain_url}/?${params}`,{
             })
         }catch(error){
 

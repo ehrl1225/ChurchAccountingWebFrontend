@@ -7,10 +7,7 @@ export const useOrganization = () => {
 
     const create_organization = async (organization:OrganizationRequestDto) => {
         try {
-            const response = await axiosInstance.post(domain_url, organization,{
-                headers:{
-                    "Content_Type":"application/json",
-                },
+            const response = await axiosInstance.post(`${domain_url}/`, organization,{
             })
         }catch (error) {
 
@@ -20,9 +17,6 @@ export const useOrganization = () => {
     const update_organization = async (organization_id:number, organization:OrganizationRequestDto) => {
         try{
             const response = await axiosInstance.put(`${domain_url}/${organization_id}`, organization, {
-                headers:{
-                    "Content_Type":"application/json",
-                },
             });
         }catch(error){
 

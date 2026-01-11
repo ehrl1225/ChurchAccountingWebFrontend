@@ -8,10 +8,7 @@ export const useCategory = () => {
     
     const create_category = async (create_category:CreateCategoryDTO) => {
         try {
-            const response = await axiosInstance.post(domain_url, create_category, {
-                headers:{
-                    "Content_Type":"application/json"
-                },
+            const response = await axiosInstance.post(`${domain_url}/`, create_category, {
             });
             
         }catch(error){
@@ -22,9 +19,6 @@ export const useCategory = () => {
     const import_category = async (import_category:ImportCategoryDto) => {
         try{
             const response = await axiosInstance.post(`${domain_url}/import`, import_category, {
-                headers:{
-                    "Content_Type":"application/json",
-                },
             })
         }catch(error){
 
@@ -38,7 +32,7 @@ export const useCategory = () => {
                 year:search_category_params.year.toString(),
                 tx_type:search_category_params.tx_type.toString()
             });
-            const response = await axiosInstance.get<CategoryResponseDto[]>(`${domain_url}?${params.toString()}`, {
+            const response = await axiosInstance.get<CategoryResponseDto[]>(`${domain_url}/?${params.toString()}`, {
             });
             return response.data;
         } catch(error){
@@ -50,10 +44,7 @@ export const useCategory = () => {
 
     const update_category = async (edit_category:EditCategoryDto) => {
         try{
-            const response = await axiosInstance.put(`${domain_url}`,edit_category, {
-                headers:{
-                    "Content_Type":"application/json"
-                },
+            const response = await axiosInstance.put(`${domain_url}/`,edit_category, {
             })
         }catch(error){
 
@@ -63,9 +54,6 @@ export const useCategory = () => {
     const update_all_category = async (edit_all_dto:EditAllDto) => {
         try{
             const response = await axiosInstance.put(`${domain_url}/all`,edit_all_dto, {
-                headers: {
-                    "Content_Type":"application/json",
-                },
             })
         }catch(error){
 

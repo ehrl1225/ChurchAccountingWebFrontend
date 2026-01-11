@@ -9,10 +9,7 @@ export const useOrganizationInvitation = () => {
 
     const create_organization_invitation = async (organization_invitation:CreateOrganizationInvitationDto) => {
         try{
-            const response = await axiosInstance.post(domain_url, organization_invitation, {
-                headers:{
-                    "Content_Type":"application/json",
-                },
+            const response = await axiosInstance.post(`${domain_url}/`, organization_invitation, {
             })
 
         }catch(error){
@@ -31,7 +28,7 @@ export const useOrganizationInvitation = () => {
 
     const get_organization_invitation = async ():Promise<OrganizationResponseDto[]> => {
         try{
-            const response = await axiosInstance.get<OrganizationResponseDto[]>(domain_url, {
+            const response = await axiosInstance.get<OrganizationResponseDto[]>(`${domain_url}/`, {
             })
             return response.data;
         }catch (error ){
