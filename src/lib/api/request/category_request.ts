@@ -23,7 +23,7 @@ export interface EditCategoryDto{
 export interface SearchCategoryParams{
     organization_id:number;
     year:number;
-    tx_type:TxType;
+    tx_type:TxType | null;
 }
 
 export interface EditAllDto{
