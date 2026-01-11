@@ -14,7 +14,10 @@ axiosInstance.interceptors.response.use(
     (error) => {
         if (error.response && error.response.status === 401){
             const currentPath = window.location.pathname;
-            if (currentPath !== '/auth/login') {
+            if (currentPath == "/"){
+                window.location.href = '/auth/login'
+            }
+            else if (currentPath !== '/auth/login') {
                 window.location.href = `/auth/login?redirect=${encodeURIComponent(currentPath)}`
             }
         }

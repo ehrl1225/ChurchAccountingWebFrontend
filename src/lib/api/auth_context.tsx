@@ -6,7 +6,7 @@ import { useMember } from "./hook/member_hook";
 import { LoginFormDTO } from "./request/member_request";
 import { Card, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 interface AuthContextType {
     member: MemberDTO | null;
@@ -23,7 +23,8 @@ export const AuthProvider = ({children}: {children: ReactNode})=>{
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
     const searchParams = useSearchParams();
-
+    const pathname = usePathname();
+    const isAuthenticated = !!member;
     useEffect(() => {
         const checkUserStatus = async () => {
             const userData = await me_request();
@@ -31,19 +32,22 @@ export const AuthProvider = ({children}: {children: ReactNode})=>{
             setIsLoading(false);
         }
         checkUserStatus();
-    }, []);
+    }, [me_request]);
+
+    useEffect(() => {
+        if (!isLoading && isAuthenticated && pathname === '/auth/login') {
+            const redirect_url = searchParams.get('redirect');
+            if (redirect_url){
+                router.push(decodeURIComponent(redirect_url));
+            }else{
+                router.push('/ledger/total');
+            }
+        }
+    },[isAuthenticated, isLoading, pathname, router, searchParams])
 
     const login = async ({email, password}: LoginFormDTO) => {
         const member = await login_request({email:email, password:password});
         setMember(member);
-        if (member){
-            const redirect_url = searchParams.get('redirect');
-            if (redirect_url){
-                router.push(redirect_url);
-            }else{
-                router.push('/');
-            }
-        }
     }
 
     const logout = async () => {
@@ -51,8 +55,6 @@ export const AuthProvider = ({children}: {children: ReactNode})=>{
         setMember(null);
         router.push('/auth/login');
     }
-
-    const isAuthenticated = !!member;
 
     const value = {
         member,
