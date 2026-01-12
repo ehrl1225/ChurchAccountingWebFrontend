@@ -68,7 +68,7 @@ export const useCategory = () => {
                 organization_id:delete_category.organization_id.toString(),
                 category_id:delete_category.category_id.toString(),
             })
-            const response = await axiosInstance.delete(`${domain_url}?${params.toString()}`)
+            const response = await axiosInstance.delete(`${domain_url}/?${params.toString()}`)
         }catch(error){
 
         }

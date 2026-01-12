@@ -1,19 +1,14 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TxType } from "@/lib/api/common_enum";
 import { useCategory } from "@/lib/api/hook/category_hook";
-import { useItem } from "@/lib/api/hook/item_hook";
 import { useOrganizations } from "@/lib/api/organization_context";
 import { EditAllCategoryDto } from "@/lib/api/request/category_request";
 import { CategoryResponseDto } from "@/lib/api/response/category_response";
-import { Check, Pencil, Plus, Trash2, TrendingDown, TrendingUp, X } from "lucide-react";
+import { Check, Pencil, TrendingDown, TrendingUp, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AddCategoryDialog } from "./_component/add_category_dialog";
 import { ImportCategoryDialog } from "./_component/import_category_dialog";
@@ -31,6 +26,7 @@ export default function CategoryPage() {
   // 일괄 편집 모드 상태
   const [isEditMode, setIsEditMode] = useState(false);
   const [editableCategories, setEditableCategories] = useState<EditAllCategoryDto[]>([]);
+  const [newItemId, setNewItemId] = useState(-1);
 
   const fetchCategories = async (tx_type:TxType | null) => {
     if (selectedOrgId === null){
@@ -66,7 +62,13 @@ export default function CategoryPage() {
   // 현재 탭의 카테고리만 필터링
   const filteredCategoriesByType = (type: TxType) => {
     if (isEditMode) {
-      return editableCategories.filter(c => c.tx_type === type && !c.deleted);
+      return editableCategories.filter(c => c.tx_type === type && !c.deleted).map(cat =>{
+        return {
+          ...cat,
+          items: cat.items.filter(it => !it.deleted)
+        }
+      }
+      );
     }
     return categories.filter(c => c.tx_type === type);
   };
@@ -102,17 +104,34 @@ export default function CategoryPage() {
     if (selectedYear === null){
       return;
     }
+    const data = editableCategories.map(cat => {
+      return {
+        ...cat,
+        items:cat.items.map(it => {
+          if (it.id === null){
+            return it
+          }
+          if (it.id < 0){
+            return {
+              ...it,
+              id:null
+            }
+          }
+          return it
+        })
+      }
+    })
     await update_all_category({
       organization_id:selectedOrgId,
       year:selectedYear,
-      categories:editableCategories
+      categories:data
     })
-    await fetchCategories(currentCategoryType);
+    await fetchCategories(null);
   };
 
   // 편집 내용 적용
-  const applyChanges = () => {
-    onUpdateCategories();
+  const applyChanges = async () => {
+    await onUpdateCategories();
     setIsEditMode(false);
     setEditableCategories([]);
   };
@@ -174,6 +193,8 @@ export default function CategoryPage() {
           setEditableCategories={setEditableCategories}
           filteredCategoriesByType={filteredCategoriesByType}
           fetchCategories={()=>fetchCategories(null)}
+          newItemId={newItemId}
+          setNewItemId={setNewItemId}
           />
 
           <CategoryTabContent
@@ -183,6 +204,8 @@ export default function CategoryPage() {
           setEditableCategories={setEditableCategories}
           filteredCategoriesByType={filteredCategoriesByType}
           fetchCategories={()=>fetchCategories(null)}
+          newItemId={newItemId}
+          setNewItemId={setNewItemId}
           />
         </Tabs>
       </CardContent>

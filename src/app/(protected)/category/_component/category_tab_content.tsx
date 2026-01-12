@@ -8,9 +8,8 @@ import { TabsContent } from "@/components/ui/tabs";
 import { TxType } from "@/lib/api/common_enum";
 import { useOrganizations } from "@/lib/api/organization_context";
 import { EditAllCategoryDto } from "@/lib/api/request/category_request";
-import { EditAllItemDto } from "@/lib/api/request/item_request"
 import { CategoryResponseDto } from "@/lib/api/response/category_response";
-import { Check, Pencil, Plus, Trash2, TrendingDown, X } from "lucide-react";
+import { Check, Pencil, Plus, Trash2, TrendingDown, TrendingUp, X } from "lucide-react";
 import { useState } from "react";
 import { AddItemDialog } from "./add_item_dialog";
 import { useItem } from "@/lib/api/hook/item_hook";
@@ -23,9 +22,20 @@ export interface categoryTabContentInput{
     setEditableCategories: (categories:EditAllCategoryDto[]) => void;
     filteredCategoriesByType : (tx_type:TxType) => CategoryResponseDto[] | EditAllCategoryDto[];
     fetchCategories: () => Promise<void>;
+    newItemId: number;
+    setNewItemId: (num:number) => void
 }
 
-export function CategoryTabContent ({tx_type, isEditMode, editableCategories, setEditableCategories, filteredCategoriesByType, fetchCategories}:categoryTabContentInput) {
+export function CategoryTabContent ({
+    tx_type, 
+    isEditMode, 
+    editableCategories, 
+    setEditableCategories, 
+    filteredCategoriesByType, 
+    fetchCategories,
+    newItemId,
+    setNewItemId
+}:categoryTabContentInput) {
     const {organizations, selectedOrgId, selectedYear} = useOrganizations();
     const selectedOrg = organizations.find(org => org.id === selectedOrgId);
     const [editingCategoryId, setEditingCategoryId] = useState<Number|null>();
@@ -58,15 +68,17 @@ export function CategoryTabContent ({tx_type, isEditMode, editableCategories, se
         if (isEditMode){
             setEditableCategories(editableCategories.map( cat => {
                 if (cat.id === categoryId){
-                    return {
+                    const newItem = {
                         ...cat,
                         items: [...cat.items, {
                             category_id:categoryId,
-                            id:null,
+                            id:newItemId,
                             name:item,
                             deleted:false
                         }]
                     }
+                    setNewItemId(newItemId-1);
+                    return newItem
                 }
                 return cat
             }
@@ -113,6 +125,7 @@ export function CategoryTabContent ({tx_type, isEditMode, editableCategories, se
             })
             await fetchCategories();
         }
+        cancelEditingCategory()
     }
 
     const onEditItem = async (category_id:number|null, item_id:number | null, item_name:string) => {
@@ -153,6 +166,7 @@ export function CategoryTabContent ({tx_type, isEditMode, editableCategories, se
             await fetchCategories();
 
         }
+        cancelEditingSecondary();
 
     }
 
@@ -277,7 +291,7 @@ export function CategoryTabContent ({tx_type, isEditMode, editableCategories, se
                                         size='icon'
                                         variant="ghost"
                                         className="h-8 w-8"
-                                        onClick={() => {}}
+                                        onClick={() => {onEditCategory(category.id, editingCategoryValue)}}
                                         >
                                             <Check className="w-3 h-3"/>
                                         </Button>
@@ -293,10 +307,14 @@ export function CategoryTabContent ({tx_type, isEditMode, editableCategories, se
                                     )
                                     : category.name}
                                 </CardTitle>
-                                <Badge variant="destructive" className="flex items-center gap-1">
+                                {tx_type === "OUTCOME" ? <Badge variant="destructive" className="flex items-center gap-1">
                                     <TrendingDown className="w-3 h-3" />
                                     {txType_to_kor(tx_type)}
-                                </Badge>
+                                </Badge>:
+                                <Badge className="flex items-center gap-1" style={{backgroundColor: '#10b981' }}>
+                                    <TrendingUp className="w-3 h-3"/>
+                                    {txType_to_kor(tx_type)}
+                                </Badge>}
                             </div>
                             {canEdit && <div className="flex flex-col sm:flex-row gap-2">
                                 <AddItemDialog addItem={(item_value:string) =>onAddItem(category.id, item_value)}/>
@@ -321,7 +339,7 @@ export function CategoryTabContent ({tx_type, isEditMode, editableCategories, se
                     <CardContent>
                         <div className="flex flex-wrap gap-2">
                         {category.items.map((secondary) => {
-                            const isEditing = editingSecondaryId === secondary.id;
+                            const isEditing = editingSecondaryId === secondary.id && secondary.id !== null;
                             
                             return (
                             <div key={secondary.id} className="flex items-center gap-1">
@@ -334,7 +352,7 @@ export function CategoryTabContent ({tx_type, isEditMode, editableCategories, se
                                     autoFocus
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
-                                            onEditItem(category.id, secondary.id, secondary.name)
+                                            onEditItem(category.id, secondary.id, editingSecondaryValue)
                                         } else if (e.key === 'Escape') {
                                             cancelEditingSecondary();
                                         }
@@ -344,7 +362,7 @@ export function CategoryTabContent ({tx_type, isEditMode, editableCategories, se
                                     size="icon"
                                     variant="ghost"
                                     className="h-8 w-8"
-                                    onClick={() => onEditItem(category.id, secondary.id, secondary.name)}
+                                    onClick={() => onEditItem(category.id, secondary.id, editingSecondaryValue)}
                                     >
                                         <Check className="w-3 h-3" />
                                     </Button>

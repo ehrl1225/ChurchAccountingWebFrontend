@@ -89,18 +89,6 @@ export function AddCategoryDialog({fetchCategories, categories}:addCategoryInput
                         <div className="grid grid-cols-2 gap-2">
                             <Button
                             type="button"
-                            variant={categoryType === "INCOME" ? 'default' : 'outline'}
-                            onClick={() => {
-                                setCategoryType("INCOME");
-                                setPrimaryCategory('');
-                            }}
-                            className="w-full"
-                            >
-                                <TrendingUp className="w-4 h-4 mr-2" />
-                                수입
-                            </Button>
-                            <Button
-                            type="button"
                             variant={categoryType === "OUTCOME" ? 'default' : 'outline'}
                             onClick={() => {
                                 setCategoryType("OUTCOME");
@@ -110,6 +98,18 @@ export function AddCategoryDialog({fetchCategories, categories}:addCategoryInput
                             >
                             <TrendingDown className="w-4 h-4 mr-2" />
                             지출
+                            </Button>
+                            <Button
+                            type="button"
+                            variant={categoryType === "INCOME" ? 'default' : 'outline'}
+                            onClick={() => {
+                                setCategoryType("INCOME");
+                                setPrimaryCategory('');
+                            }}
+                            className="w-full"
+                            >
+                                <TrendingUp className="w-4 h-4 mr-2" />
+                                수입
                             </Button>
                         </div>
                     </div>

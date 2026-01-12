@@ -16,6 +16,8 @@ export function AddItemDialog({addItem}:addItemDialogInput){
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         await addItem(item);
+        setDialogOpen(false);
+        setItem("");
     }
 
     return (
