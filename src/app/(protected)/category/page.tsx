@@ -17,13 +17,13 @@ import { Check, Pencil, Plus, Trash2, TrendingDown, TrendingUp, X } from "lucide
 import { useEffect, useState } from "react";
 import { AddCategoryDialog } from "./_component/add_category_dialog";
 import { ImportCategoryDialog } from "./_component/import_category_dialog";
+import { CategoryTabContent } from "./_component/category_tab_content";
 
 export default function CategoryPage() {
   const [currentCategoryType, setCurrentCategoryType] = useState<TxType>("OUTCOME");
   const [categories, setCategories] = useState<CategoryResponseDto[]>([]);
   const {organizations, selectedOrgId, selectedYear} = useOrganizations();
-  const {get_categories, update_all_category, delete_category} = useCategory();
-  const {delete_item} = useItem();
+  const {get_categories, update_all_category} = useCategory();
 
   const selectedOrg = organizations.find(org => org.id === selectedOrgId);
   const availableOrganizations = organizations
@@ -31,8 +31,6 @@ export default function CategoryPage() {
   // 일괄 편집 모드 상태
   const [isEditMode, setIsEditMode] = useState(false);
   const [editableCategories, setEditableCategories] = useState<EditAllCategoryDto[]>([]);
-  const [editingSecondaryId, setEditingSecondaryId] = useState<Number | null>(null);
-  const [editingSecondaryValue, setEditingSecondaryValue] = useState('');
 
   const fetchCategories = async (tx_type:TxType | null) => {
     if (selectedOrgId === null){
@@ -95,8 +93,6 @@ export default function CategoryPage() {
   const cancelEditMode = () => {
     setEditableCategories([]);
     setIsEditMode(false);
-    setEditingSecondaryId(null);
-    setEditingSecondaryValue('');
   };
 
   const onUpdateCategories = async () => {
@@ -119,112 +115,8 @@ export default function CategoryPage() {
     onUpdateCategories();
     setIsEditMode(false);
     setEditableCategories([]);
-    setEditingSecondaryId(null);
-    setEditingSecondaryValue('');
   };
 
-  // 항목 추가 (편집 모드)
-  const addSecondaryInEditMode = (categoryId: number | null) => {
-    const newSecondary = window.prompt('새 항목 이름을 입력하세요:');
-    if (newSecondary && newSecondary.trim()) {
-      setEditableCategories(prev => prev.map(cat => {
-        if (cat.id === categoryId) {
-          return {
-            ...cat,
-            secondaries: [...cat.items, newSecondary.trim()],
-          };
-        }
-        return cat;
-      }));
-    }
-  };
-
-  // 항목 삭제 (편집 모드)
-  const deleteSecondaryInEditMode = (categoryId: number | null, secondaryId: number| null) => {
-    setEditableCategories(prev => prev.map(cat => {
-      if (cat.id === categoryId) {
-        return {
-          ...cat,
-          secondaries: cat.items.filter(s => s.id !== secondaryId),
-        };
-      }
-      return cat;
-    }));
-  };
-
-  // 관 삭제 (편집 모드)
-  const deleteCategoryInEditMode = (categoryId: number| null) => {
-    if (categoryId === null) {
-      return;
-    }
-    setEditableCategories(prev => prev.map(cat => {
-      if (cat.id === categoryId) {
-        return { ...cat, deleted: true };
-      }
-      return cat;
-    }));
-  };
-
-  const onDeleteCategory = async (categoryId:number|null) => {
-    if (categoryId === null) {
-      return;
-    }
-    if (selectedOrgId === null){
-      return;
-    }
-    await delete_category({
-      category_id:categoryId,
-      organization_id:selectedOrgId
-    })
-  }
-
-  const onDeleteItem = async (categoryId:number|null, itemId: number | null) => {
-    if (categoryId === null){
-      return;
-    }
-    if (itemId === null){
-      return;
-    }
-    if (selectedOrgId === null){
-      return;
-    }
-    await delete_item({
-      category_id:categoryId,
-      item_id:itemId,
-      organization_id:selectedOrgId
-    })
-    await fetchCategories(currentCategoryType);
-
-  }
-
-  // 항목 수정 시작
-  const startEditingSecondary = (itemId:number | null, itemName: string) => {
-    setEditingSecondaryId(itemId);
-    setEditingSecondaryValue(itemName);
-  };
-
-  // 항목 수정 저장
-  const saveEditingSecondary = (categoryId: number|null, oldSecondaryId: Number | null, oldSecondaryName:string) => {
-    if (editingSecondaryValue.trim() && editingSecondaryValue !== oldSecondaryName) {
-      setEditableCategories(prev => prev.map(cat => {
-        if (cat.id === categoryId) {
-          return {
-            ...cat,
-            items: cat.items.map(s => s.id === oldSecondaryId ? {...s, name:editingSecondaryValue.trim()} : s),
-          };
-        }
-        return cat;
-      }));
-    }
-    setEditingSecondaryId(null);
-    setEditingSecondaryValue('');
-  };
-
-  // 항목 수정 취소
-  const cancelEditingSecondary = () => {
-    setEditingSecondaryId(null);
-    setEditingSecondaryValue('');
-  };
 
   return (
     <Card>
@@ -275,229 +167,23 @@ export default function CategoryPage() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="OUTCOME" className="space-y-4 mt-4">
-            {filteredCategoriesByType("OUTCOME").length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                등록된 지출 카테고리가 없습니다.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredCategoriesByType("OUTCOME").map((category) => (
-                  <Card key={category.id}>
-                    <CardHeader>
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <CardTitle className="text-lg">{category.name}</CardTitle>
-                          <Badge variant="destructive" className="flex items-center gap-1">
-                            <TrendingDown className="w-3 h-3" />
-                            지출
-                          </Badge>
-                        </div>
-                        <div className="flex gap-2">
-                          {isEditMode && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => addSecondaryInEditMode(category.id!)}
-                            >
-                              <Plus className="w-4 h-4" />
-                            </Button>
-                          )}
-                          {(canEdit && !isEditMode) || isEditMode ? (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => isEditMode ? deleteCategoryInEditMode(category.id) : onDeleteCategory(category.id)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          ) : null}
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-wrap gap-2">
-                        {category.items.map((secondary) => {
-                          const isEditing = editingSecondaryId === secondary.id;
-                          
-                          return (
-                            <div key={secondary.id} className="flex items-center gap-1">
-                              {isEditing ? (
-                                <div className="flex items-center gap-1">
-                                  <Input
-                                    value={editingSecondaryValue}
-                                    onChange={(e) => setEditingSecondaryValue(e.target.value)}
-                                    className="h-8 w-32"
-                                    autoFocus
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Enter') {
-                                        if (isEditMode){
-                                          saveEditingSecondary(category.id, secondary.id, secondary.name);
-                                        }
-                                      } else if (e.key === 'Escape') {
-                                        cancelEditingSecondary();
-                                      }
-                                    }}
-                                  />
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-8 w-8"
-                                    onClick={() => saveEditingSecondary(category.id, secondary.id, secondary.name)}
-                                  >
-                                    <Check className="w-3 h-3" />
-                                  </Button>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-8 w-8"
-                                    onClick={cancelEditingSecondary}
-                                  >
-                                    <X className="w-3 h-3" />
-                                  </Button>
-                                </div>
-                              ) : (
-                                <Badge variant="secondary" className="flex items-center gap-2">
-                                  {secondary.name}
-                                  {canEdit && (
-                                    <>
-                                      <button
-                                        onClick={() => startEditingSecondary(secondary.id, secondary.name)}
-                                        className="ml-1 hover:text-blue-600"
-                                      >
-                                        <Pencil className="w-3 h-3" />
-                                      </button>
-                                      <button
-                                        onClick={() => isEditMode ? deleteSecondaryInEditMode(category.id, secondary.id): onDeleteItem(category.id, secondary.id)}
-                                        className="hover:text-red-600"
-                                      >
-                                        ×
-                                      </button>
-                                    </>
-                                  )}
-                                </Badge>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
+          <CategoryTabContent 
+          tx_type="OUTCOME"
+          isEditMode={isEditMode}
+          editableCategories={editableCategories}
+          setEditableCategories={setEditableCategories}
+          filteredCategoriesByType={filteredCategoriesByType}
+          fetchCategories={()=>fetchCategories(null)}
+          />
 
-          <TabsContent value="INCOME" className="space-y-4 mt-4">
-            {filteredCategoriesByType("INCOME").length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                등록된 수입 카테고리가 없습니다.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredCategoriesByType("INCOME").map((category) => (
-                  <Card key={category.id}>
-                    <CardHeader>
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <CardTitle className="text-lg">{category.name}</CardTitle>
-                          <Badge className="flex items-center gap-1" style={{ backgroundColor: '#10b981' }}>
-                            <TrendingUp className="w-3 h-3" />
-                            수입
-                          </Badge>
-                        </div>
-                        <div className="flex gap-2">
-                          {isEditMode && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => addSecondaryInEditMode(category.id)}
-                            >
-                              <Plus className="w-4 h-4" />
-                            </Button>
-                          )}
-                          {(canEdit && !isEditMode) || isEditMode ? (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => isEditMode ? deleteCategoryInEditMode(category.id) : onDeleteCategory(category.id)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          ) : null}
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-wrap gap-2">
-                        {category.items.map((secondary) => {
-                          const isEditing = editingSecondaryId === secondary.id;
-                          
-                          return (
-                            <div key={secondary.id} className="flex items-center gap-1">
-                              {isEditing ? (
-                                <div className="flex items-center gap-1">
-                                  <Input
-                                    value={editingSecondaryValue}
-                                    onChange={(e) => setEditingSecondaryValue(e.target.value)}
-                                    className="h-8 w-32"
-                                    autoFocus
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Enter') {
-                                        saveEditingSecondary(category.id, secondary.id, secondary.name);
-                                      } else if (e.key === 'Escape') {
-                                        cancelEditingSecondary();
-                                      }
-                                    }}
-                                  />
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-8 w-8"
-                                    onClick={() => saveEditingSecondary(category.id, secondary.id, secondary.name)}
-                                  >
-                                    <Check className="w-3 h-3" />
-                                  </Button>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-8 w-8"
-                                    onClick={cancelEditingSecondary}
-                                  >
-                                    <X className="w-3 h-3" />
-                                  </Button>
-                                </div>
-                              ) : (
-                                <Badge variant="secondary" className="flex items-center gap-2">
-                                  {secondary.name}
-                                  {canEdit && (
-                                    <>
-                                      <button
-                                        onClick={() => startEditingSecondary(secondary.id, secondary.name)}
-                                        className="ml-1 hover:text-blue-600"
-                                      >
-                                        <Pencil className="w-3 h-3" />
-                                      </button>
-                                      <button
-                                        onClick={() => isEditMode ? deleteSecondaryInEditMode(category.id, secondary.id) : onDeleteItem(category.id, secondary.id)}
-                                        className="hover:text-red-600"
-                                      >
-                                        ×
-                                      </button>
-                                    </>
-                                  )}
-                                </Badge>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
+          <CategoryTabContent
+          tx_type="INCOME"
+          isEditMode={isEditMode}
+          editableCategories={editableCategories}
+          setEditableCategories={setEditableCategories}
+          filteredCategoriesByType={filteredCategoriesByType}
+          fetchCategories={()=>fetchCategories(null)}
+          />
         </Tabs>
       </CardContent>
     </Card>
