@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import axiosInstance from "../axios_instance";
 import { LoginFormDTO, RegisterFormDTO } from "../request/member_request";
 import { MemberDTO } from "../response/member_response";
@@ -19,9 +20,10 @@ export const useMember = () => {
         try{
             const response = await axiosInstance.post<MemberDTO>(`${domain_url}/login`, login_form, {
             })
+            toast.success("로그인 성공")
             return response.data;
         }catch (error) {
-            console.error("Error", error);
+            toast.error("Failed to login")
         }
         return null;
     }, [domain_url]);

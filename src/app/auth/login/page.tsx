@@ -13,7 +13,8 @@ export default function login_page(){
   const [password, setPassword] = useState<string>("");
   const router = useRouter();
   const {login} = useAuth();
-  const handleSubmit = () => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     login({email, password});
   };
   const onSwitchToRegister = () => {

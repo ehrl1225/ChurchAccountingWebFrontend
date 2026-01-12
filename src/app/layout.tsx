@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Navigation, Page } from "./_component/Navigation";
 import login_page from "./auth/login/page";
 import { Suspense } from "react";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,11 +35,15 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <Toaster 
+        position="bottom-right"
+        richColors
+        />
         <Suspense>
           <AuthProvider>
-            <div className="min-h-screen bg-gray-50">
-              {children}
-            </div>
+              <div className="min-h-screen bg-gray-50">
+                {children}
+              </div>
           </AuthProvider>
         </Suspense>
       </body>
