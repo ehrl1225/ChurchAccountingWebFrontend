@@ -84,10 +84,10 @@ export default function organization_page() {
     resetForm();
   };
 
-  const handleInvite = (e: React.FormEvent) => {
+  const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     if (inviteUserId.trim()) {
-      create_organization_invitation({email:inviteUserId.trim(), organization_id:selectedOrgId});
+      await create_organization_invitation({email:inviteUserId.trim(), organization_id:selectedOrgId});
       setInviteDialogOpen(false);
       setInviteUserId('');
     }

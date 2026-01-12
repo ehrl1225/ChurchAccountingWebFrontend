@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 import { OrganizationInvitationDto } from "../response/organization_invitation_response";
+import { toast } from "sonner";
+import { useOrganizationInvitation } from "./organization_invitation_hook";
 
 
 export const useOrganizationInvitationEvent = (isAuthenticated: boolean) => {
@@ -7,6 +9,12 @@ export const useOrganizationInvitationEvent = (isAuthenticated: boolean) => {
     const [error, setError] = useState<string | null>(null);
     const [isConnected, setIsConnected] = useState<boolean>(false);
     const domain_url = `${process.env.NEXT_PUBLIC_SERVER_URL}/organization-invitation`;
+    const {get_organization_invitation} = useOrganizationInvitation();
+
+    const fetch_invitations = async () => {
+        const data = await get_organization_invitation();
+        setinvitations(data)
+    }
 
     useEffect(()=>{
         if (!isAuthenticated){
@@ -15,11 +23,13 @@ export const useOrganizationInvitationEvent = (isAuthenticated: boolean) => {
             setError(null);
             return;
         }
+        fetch_invitations();
 
 
         const eventSource = new EventSource(`${domain_url}/subscribe`, {
             withCredentials:true,
         });
+
 
         eventSource.onopen = () => {
             console.log("SSE connection established.");
