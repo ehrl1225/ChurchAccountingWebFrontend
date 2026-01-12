@@ -36,7 +36,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Suspense>
           <AuthProvider>
+            <div className="min-h-screen bg-gray-50">
               {children}
+            </div>
           </AuthProvider>
         </Suspense>
       </body>

@@ -35,9 +35,11 @@ export default function NeedLogin({ children }: { children: ReactNode }) {
         <OrganizationProvider>
             <Navigation currentPage={pathname as Page} pendingInvitationsCount={invitations.length}/>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+                <div className="space-y-6">
                     {isOrganization && <InvitationNotifications invitations={invitations} remove_invitation={remove_invitation}/>}
                     {!isOrganization && <OrganizationSelector/> }
                     {children}
+                </div>
             </div>
         </OrganizationProvider>
     </div>;
