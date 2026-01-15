@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { TxType } from "@/lib/api/common_enum";
 import { useCategory } from "@/lib/api/hook/category_hook";
 import { useItem } from "@/lib/api/hook/item_hook";
-import { useOrganization } from "@/lib/api/hook/organization_hook";
 import { useOrganizations } from "@/lib/api/organization_context";
 import { CategoryResponseDto } from "@/lib/api/response/category_response";
 import { Plus, TrendingDown, TrendingUp } from "lucide-react";

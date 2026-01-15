@@ -9,7 +9,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useEvent } from "@/lib/api/hook/event_hook";
 import { useOrganizations } from "@/lib/api/organization_context";
-import { CreateEventDTO } from "@/lib/api/request/event_request";
 import { EventResponseDTO } from "@/lib/api/response/event_response";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";

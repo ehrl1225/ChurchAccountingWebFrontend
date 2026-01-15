@@ -2,7 +2,7 @@ import { TxType } from "../common_enum";
 import { SummaryType } from "../response/receipt_response";
 
 export interface CreateReceiptDto{
-    receipt_image_url: string | null;
+    receipt_image_id: number | null;
     paper_date: string;
     actual_date: string | null;
     name: string;
@@ -22,9 +22,9 @@ export interface DeleteReceiptParams{
 }
 
 export interface EditReceiptDto{
+    receipt_image_id: number | null;
     organization_id:number;
     receipt_id: number;
-    receipt_image_url: string | null;
     paper_date: string;
     actual_date: string | null;
     name: string;

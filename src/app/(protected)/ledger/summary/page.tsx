@@ -11,7 +11,6 @@ import { useReceipt } from "@/lib/api/hook/receipt_hook";
 import { useOrganizations } from "@/lib/api/organization_context";
 import { EventResponseDTO } from "@/lib/api/response/event_response";
 import { ReceiptSummaryCategoryDto, ReceiptSummaryDto, SummaryType } from "@/lib/api/response/receipt_response";
-import JSZip from "jszip";
 import { Download, ImageIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 

@@ -15,8 +15,8 @@ import { useOrganizationInvitation } from "@/lib/api/hook/organization_invitatio
 import { OrganizationRequestDto } from "@/lib/api/request/organization_request";
 import { OrganizationResponseDto } from "@/lib/api/response/organization_response";
 import { Pencil, Plus, Trash2, UserPlus, X } from "lucide-react";
-import { useEffect, useState } from "react";
-import {MemberRole} from "@/lib/api/common_enum"
+import { useState } from "react";
+import { MemberRole } from "@/lib/api/common_enum"
 import { JoinedOrganizatinoResponse } from "@/lib/api/response/joined_organization_response";
 import { useOrganizations } from "@/lib/api/organization_context";
 

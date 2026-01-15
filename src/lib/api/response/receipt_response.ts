@@ -2,7 +2,8 @@ import { TxType } from "../common_enum";
 
 export interface ReceiptResponseDto{
     id: number;
-    receipt_image_url: string;
+    receipt_image_id: number | null;
+    receipt_image_file_name: string | null;
     paper_date: string;
     actual_date: string | null;
     name: string;
@@ -11,6 +12,7 @@ export interface ReceiptResponseDto{
     category_id: number;
     category_name: string;
     event_id: number | null;
+    event_name: string | null;
     item_id: number;
     item_name: string;
     etc: string | null;
