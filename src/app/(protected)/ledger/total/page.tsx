@@ -15,8 +15,7 @@ import { useOrganizations } from "@/lib/api/organization_context";
 import { CategoryResponseDto } from "@/lib/api/response/category_response";
 import { EventResponseDTO } from "@/lib/api/response/event_response";
 import { ReceiptResponseDto } from "@/lib/api/response/receipt_response";
-import imageCompression from "browser-image-compression";
-import { Filter, ImageIcon, Pencil, Plus, Trash2, Upload, X } from "lucide-react";
+import { Filter, ImageIcon, Pencil, Trash2} from "lucide-react";
 import { useEffect, useState } from "react";
 import { ReceiptTable } from "./_component/receipt_table";
 import { AddReceiptDialog } from "./_component/add_receipt_dialog";
@@ -105,7 +104,7 @@ export default function TransactionTable() {
         if (selectedOrgId === null){
             return;
         }
-        const url = await get_presigned_get_url(selectedOrgId, image);
+        const url = await get_presigned_get_url("receipt",selectedOrgId, image);
         if (url === null){
             return;
         }
@@ -115,6 +114,7 @@ export default function TransactionTable() {
 
     const handleOpenDialog = async (transaction?: ReceiptResponseDto) => {
         if (transaction) {
+            console.log(transaction);
             setEditingTransaction(transaction);
         } 
         setEditDialogOpen(true);
@@ -189,6 +189,7 @@ export default function TransactionTable() {
                         dialogOpen={editDialogOpen}
                         setDialogOpen={setEditDialogOpen}
                         editingTransaction={editingTransaction}
+                        setEditingTransaction={setEditingTransaction}
                         categories={categories}
                         events={events}
                         handleViewImage={handleViewImage}
@@ -240,6 +241,8 @@ export default function TransactionTable() {
                             <Input
                             id="startDate"
                             type="date"
+                            min={`${selectedYear}-01-01`}
+                            max={`${selectedYear}-12-31`}
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
                             />
@@ -250,6 +253,8 @@ export default function TransactionTable() {
                             <Input
                             id="endDate"
                             type="date"
+                            min={startDate === ""?`${selectedYear}-01-01`:startDate}
+                            max={`${selectedYear}-12-31`}
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
                             />
@@ -298,7 +303,7 @@ export default function TransactionTable() {
 
                     {/* Mobile Card View */}
                     <div className="lg:hidden space-y-4">
-                    {filteredTransactions.map((transaction) => (
+                        {filteredTransactions.map((transaction) => (
                         <Card key={transaction.id} className="overflow-hidden">
                             <CardContent className="p-4">
                                 <div className="space-y-3">
@@ -375,7 +380,7 @@ export default function TransactionTable() {
                                 </div>
                             </CardContent>
                         </Card>
-                    ))}
+                        ))}
                     </div>
                 </>
                 )}

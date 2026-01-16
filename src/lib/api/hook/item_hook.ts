@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import axiosInstance from "../axios_instance";
 import { CreateItemDto, DeleteItemParams, EditItemDto } from "../request/item_request";
 
@@ -28,11 +29,12 @@ export const useItem = () => {
         try{
             const params = new URLSearchParams({
                 organization_id:delete_item.organization_id.toString(),
+                category_id:delete_item.category_id.toString(),
                 item_id:delete_item.item_id.toString()
             })
             await axiosInstance.delete(`${domain_url}/?${params.toString()}`);
         }catch(error){
-
+            toast.error("failed to delete item")
         }
     }
 

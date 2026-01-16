@@ -22,6 +22,7 @@ export interface addReceiptDialogInput {
     dialogOpen: boolean,
     setDialogOpen: (status:boolean) => void,
     editingTransaction:ReceiptResponseDto | null,
+    setEditingTransaction: (receipt:ReceiptResponseDto| null)=>void;
     categories:CategoryResponseDto[],
     events:EventResponseDTO[],
     handleViewImage: (image:string) => void,
@@ -33,6 +34,7 @@ export function AddReceiptDialog(
         dialogOpen, 
         setDialogOpen, 
         editingTransaction, 
+        setEditingTransaction,
         categories, 
         events, 
         handleViewImage,
@@ -74,7 +76,7 @@ export function AddReceiptDialog(
         if (receiptImage === undefined){
             return;
         }
-        const image_url = await get_presigned_get_url(selectedOrgId, receiptImage);
+        const image_url = await get_presigned_get_url("receipt",selectedOrgId, receiptImage);
         if (image_url === null){
             return;
         }
@@ -96,11 +98,11 @@ export function AddReceiptDialog(
                 setSecondaryCategory(editingTransaction.item_id.toString());
                 setEventId(editingTransaction.event_id?.toString()||'');
                 setNote(editingTransaction.etc || "");
-
-            }else{
-                resetForm();
+                return;
             }
         }
+        setEditingTransaction(null);
+        resetForm();
     }
     ,[dialogOpen]);
 
@@ -157,9 +159,9 @@ export function AddReceiptDialog(
         e.preventDefault()
 
         if (editingTransaction) {
-            onUpdate(editingTransaction.id);
+            await onUpdate(editingTransaction.id);
         }else {
-            onAdd();
+            await onAdd();
         }
         await fetchReceipts();
         setDialogOpen(false);
@@ -188,7 +190,7 @@ export function AddReceiptDialog(
         };
         const compressedFile = await imageCompression(file, options)
         console.log("try get url");
-        const post_url_response = await get_presigned_post_url({
+        const post_url_response = await get_presigned_post_url("receipt",{
             organization_id:selectedOrgId,
             file_name:file.name,
         });
@@ -210,7 +212,7 @@ export function AddReceiptDialog(
             setReceiptImage(reader.result as string);
         };
         reader.readAsDataURL(compressedFile);
-        const image_url = await get_presigned_get_url(selectedOrgId,post_url_response.file_name);
+        const image_url = await get_presigned_get_url("receipt",selectedOrgId,post_url_response.file_name);
         if (image_url === null){
             return;
         }

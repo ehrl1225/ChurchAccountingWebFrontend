@@ -209,7 +209,12 @@ export function CategoryTabContent ({
                 if (cat.id === category_id){
                     return {
                         ...cat,
-                        items:cat.items.map(it => {
+                        items:cat.items.filter(e => {
+                            if (e.id !==null && e.id < 0 && e.id == item_id){
+                                return false;
+                            }
+                            return true;
+                        }).map(it => {
                             if (it.id === item_id){
                                 return {
                                     ...it,

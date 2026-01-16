@@ -31,7 +31,7 @@ export function ReceiptTable({filteredTransactions, handleOpenDialog, handleView
             organization_id:selectedOrgId,
             receipt_id:id
         })
-        await fetchReceipts
+        await fetchReceipts();
     }
 
     return (

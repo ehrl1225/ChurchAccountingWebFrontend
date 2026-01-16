@@ -157,6 +157,7 @@ export default function EventPage() {
                     <Input
                       id="startDate"
                       type="date"
+                      min={`${selectedYear}`}
                       max={`${selectedYear}-12-31`}
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
@@ -169,7 +170,7 @@ export default function EventPage() {
                     <Input
                       id="endDate"
                       type="date"
-                      min={startDate}
+                      min={startDate==="" ?`${selectedYear}-01-01`:startDate}
                       max={`${selectedYear}-12-31`}
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}

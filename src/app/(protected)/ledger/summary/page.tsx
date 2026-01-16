@@ -14,7 +14,6 @@ import { EventResponseDTO } from "@/lib/api/response/event_response";
 import { ReceiptSummaryCategoryDto, ReceiptSummaryDto, SummaryType } from "@/lib/api/response/receipt_response";
 import { Download, ImageIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 
 export default function SummaryView() {
     const [filterType, setFilterType] = useState<SummaryType>(SummaryType.MONTH);
@@ -125,10 +124,10 @@ export default function SummaryView() {
         return (
             <div className="space-y-6">
                 <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                <span>총 {type === "INCOME" ? '수입' : '지출'}</span>
-                <span className={`${type === "INCOME" ? 'text-blue-600' : 'text-red-600'}`}>
-                    {formatCurrency(total)}원
-                </span>
+                    <span>총 {type === "INCOME" ? '수입' : '지출'}</span>
+                    <span className={`${type === "INCOME" ? 'text-blue-600' : 'text-red-600'}`}>
+                        {formatCurrency(total)}원
+                    </span>
                 </div>
 
                 {summary.map((s) => {
