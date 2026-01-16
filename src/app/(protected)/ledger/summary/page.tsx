@@ -8,11 +8,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TxType } from "@/lib/api/common_enum";
 import { useReceipt } from "@/lib/api/hook/receipt_hook";
+import { useWord } from "@/lib/api/hook/word_hook";
 import { useOrganizations } from "@/lib/api/organization_context";
 import { EventResponseDTO } from "@/lib/api/response/event_response";
 import { ReceiptSummaryCategoryDto, ReceiptSummaryDto, SummaryType } from "@/lib/api/response/receipt_response";
 import { Download, ImageIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function SummaryView() {
     const [filterType, setFilterType] = useState<SummaryType>(SummaryType.MONTH);
@@ -21,7 +23,9 @@ export default function SummaryView() {
     const [events, setEvents] = useState<EventResponseDTO[]>([]);
     const [summaryData, setSummaryData] = useState<ReceiptSummaryDto | null>(null);
     const {selectedOrgId, selectedYear} = useOrganizations();
+    const [reportUrl, setReportUrl] = useState<string | null>(null);
     const {get_summary_receipts} = useReceipt();
+    const {create_word_file} = useWord();
 
     const totalIncome = summaryData?.total_income || 0;
     const totalExpense = summaryData?.total_outcome || 0;
@@ -65,7 +69,9 @@ export default function SummaryView() {
     }));
 
 
-    const downloadReceipts = () => {}
+    const downloadReceipts = async () => {
+        
+    }
 
     const filter_categories = (tx_type:TxType) => {
         if (summaryData === null){
@@ -78,7 +84,40 @@ export default function SummaryView() {
     const expenseSummary = filter_categories("OUTCOME");
 
 
-    const downloadReport = () => {};
+    const downloadReport = async () => {
+        if (selectedOrgId === null){
+            return;
+        }
+        if (selectedYear === null){
+            return;
+        }
+        if (summaryData === null){
+            return;
+        }
+        const response = await create_word_file({
+            organization_id:selectedOrgId,
+            year:selectedYear,
+            summary_type:summaryData.summary_type,
+            month_number:getMonth(selectedMonth),
+            event_id: selectedEventId === "all" ? null : Number(selectedEventId),
+        })
+        
+        if (response === null){
+            return;
+        }
+        
+        const filename = "report.docx"
+        const blob = new Blob([response.data], {type:response.headers["content-type"]});
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+
+    };
 
     const renderSummaryTable = (summary: ReceiptSummaryCategoryDto[], type: TxType) => {
         const total = type === "INCOME" ? totalIncome : totalExpense;
@@ -166,36 +205,36 @@ export default function SummaryView() {
                         </div>
 
                         {filterType === 'month' ? (
-                            <div className="flex-1 w-full space-y-2">
+                        <div className="flex-1 w-full space-y-2">
                             <Label>월 선택</Label>
                             <Select value={selectedMonth} onValueChange={setSelectedMonth}>
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                <SelectItem value="all">전체</SelectItem>
-                                {months.map((month) => (
+                                    <SelectItem value="all">전체</SelectItem>
+                                    {months.map((month) => (
                                     <SelectItem key={month.value} value={month.value}>
                                         {month.label}
                                     </SelectItem>
-                                ))}
+                                    ))}
                                 </SelectContent>
                             </Select>
-                            </div>
+                        </div>
                         ) : (
                             <div className="flex-1 w-full space-y-2">
                             <Label>행사 선택</Label>
                             <Select value={selectedEventId} onValueChange={setSelectedEventId}>
                                 <SelectTrigger>
-                                <SelectValue />
+                                    <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                <SelectItem value="all">전체</SelectItem>
-                                {events.map((event) => (
+                                    <SelectItem value="all">전체</SelectItem>
+                                    {events.map((event) => (
                                     <SelectItem key={event.id} value={event.id.toString()}>
-                                    {event.name}
+                                        {event.name}
                                     </SelectItem>
-                                ))}
+                                    ))}
                                 </SelectContent>
                             </Select>
                             </div>
@@ -203,32 +242,32 @@ export default function SummaryView() {
 
                         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                             <Button onClick={downloadReport} className="w-full sm:w-auto">
-                            <Download className="w-4 h-4 mr-2" />
-                            보고서
+                                <Download className="w-4 h-4 mr-2" />
+                                보고서
                             </Button>
                             <Button onClick={downloadReceipts} variant="outline" className="w-full sm:w-auto">
-                            <ImageIcon className="w-4 h-4 mr-2" />
-                            영수증
+                                <ImageIcon className="w-4 h-4 mr-2" />
+                                영수증
                             </Button>
                         </div>
                     </div>
 
                     {/* 요약 정보 */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="p-4 bg-blue-50 rounded-lg">
-                        <div className="text-sm text-gray-600 mb-1">총 수입</div>
-                        <div className="text-blue-600">{formatCurrency(totalIncome)}원</div>
-                    </div>
-                    <div className="p-4 bg-red-50 rounded-lg">
-                        <div className="text-sm text-gray-600 mb-1">총 지출</div>
-                        <div className="text-red-600">{formatCurrency(totalExpense)}원</div>
-                    </div>
-                    <div className={`p-4 rounded-lg ${balance >= 0 ? 'bg-green-50' : 'bg-orange-50'}`}>
-                        <div className="text-sm text-gray-600 mb-1">잔액</div>
-                        <div className={balance >= 0 ? 'text-green-600' : 'text-orange-600'}>
-                        {formatCurrency(balance)}원
+                        <div className="p-4 bg-blue-50 rounded-lg">
+                            <div className="text-sm text-gray-600 mb-1">총 수입</div>
+                            <div className="text-blue-600">{formatCurrency(totalIncome)}원</div>
                         </div>
-                    </div>
+                        <div className="p-4 bg-red-50 rounded-lg">
+                            <div className="text-sm text-gray-600 mb-1">총 지출</div>
+                            <div className="text-red-600">{formatCurrency(totalExpense)}원</div>
+                        </div>
+                        <div className={`p-4 rounded-lg ${balance >= 0 ? 'bg-green-50' : 'bg-orange-50'}`}>
+                            <div className="text-sm text-gray-600 mb-1">잔액</div>
+                            <div className={balance >= 0 ? 'text-green-600' : 'text-orange-600'}>
+                            {formatCurrency(balance)}원
+                            </div>
+                        </div>
                     </div>
                 </div>
                 </CardContent>

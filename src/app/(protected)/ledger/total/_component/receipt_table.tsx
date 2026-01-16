@@ -71,8 +71,8 @@ export function ReceiptTable({filteredTransactions, handleOpenDialog, handleView
                 <TableCell>{transaction.actual_date}</TableCell>
                 <TableCell>{transaction.name}</TableCell>
                 <TableCell>
-                    <Badge variant={transaction.tx_type === "INCOME" ? 'default' : 'destructive'}>
-                    {transaction.tx_type === "INCOME" ? '수입' : '지출'}
+                    <Badge variant={transaction.tx_type === "INCOME" ? 'default' : 'destructive'} style={transaction.tx_type === "INCOME"?{backgroundColor: '#1E88E5' }:undefined}>
+                        {transaction.tx_type === "INCOME" ? '수입' : '지출'}
                     </Badge>
                 </TableCell>
                 <TableCell className={transaction.tx_type === "INCOME" ? 'text-blue-600' : 'text-red-600'}>

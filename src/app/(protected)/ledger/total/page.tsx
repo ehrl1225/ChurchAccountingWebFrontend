@@ -34,18 +34,13 @@ export default function TransactionTable() {
     const [showFilters, setShowFilters] = useState(false);
     
     // Form states
-    const [type, setType] = useState<TxType>("OUTCOME");
-    const [primaryCategory, setPrimaryCategory] = useState('');
-    const [secondaryCategory, setSecondaryCategory] = useState('');
-    const [eventId, setEventId] = useState<string>('none');
-    const [note, setNote] = useState('');
     const [categories, setCategories] = useState<CategoryResponseDto[]>([]);
     const [events, setEvents] = useState<EventResponseDTO[]>([]);
     const [transactions, setTransactions] = useState<ReceiptResponseDto[]>([]);
     const {selectedOrgId, selectedYear} = useOrganizations();
     const {get_categories} = useCategory();
     const {get_event} = useEvent();
-    const {create_receipt, delete_receipt, get_all_receipts, update_receipt} = useReceipt();
+    const {delete_receipt, get_all_receipts} = useReceipt();
     const {get_presigned_get_url} = useFile();
 
     const fetchReceipts = async () => {
@@ -145,8 +140,11 @@ export default function TransactionTable() {
     // Filter transactions based on date range
     const filteredTransactions = transactions.filter(transaction => {
         if (!startDate && !endDate) return true;
+        if (dateFilterType === "actual" && transaction.actual_date === null){
+            return;
+        }
         
-        const dateToCompare = dateFilterType === 'document' ? transaction.paper_date : transaction.actual_date? transaction.actual_date:transaction.paper_date;
+        const dateToCompare = dateFilterType === 'document' ? transaction.paper_date : transaction.actual_date!;
         
         if (startDate && endDate) {
         return dateToCompare >= startDate && dateToCompare <= endDate;
@@ -307,7 +305,7 @@ export default function TransactionTable() {
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-2">
-                                                <Badge variant={transaction.tx_type === "INCOME" ? 'default' : 'destructive'}>
+                                                <Badge variant={transaction.tx_type === "INCOME" ? 'default' : 'destructive'} style={transaction.tx_type === "INCOME"? {backgroundColor: '#1E88E5' }:undefined}>
                                                     {transaction.tx_type === "INCOME" ? '수입' : '지출'}
                                                 </Badge>
                                                 {transaction.receipt_image_id && (
