@@ -24,11 +24,12 @@ export default function SummaryView() {
     const {selectedOrgId, selectedYear} = useOrganizations();
     const [reportUrl, setReportUrl] = useState<string | null>(null);
     const {get_summary_receipts} = useReceipt();
-    const {create_word_file} = useWord();
+    const {create_word_file, create_word_file_url} = useWord();
 
     const totalIncome = summaryData?.total_income || 0;
     const totalExpense = summaryData?.total_outcome || 0;
     const balance = summaryData?.balance || 0;
+    const baseURL = process.env.NEXT_PUBLIC_SERVER_URL
 
     const getMonth = (month:string) => {
         if (month === "all"){
@@ -82,41 +83,26 @@ export default function SummaryView() {
     const incomeSummary = filter_categories("INCOME");
     const expenseSummary = filter_categories("OUTCOME");
 
-
-    const downloadReport = async () => {
+    const make_report_url = () => {
         if (selectedOrgId === null){
-            return;
+            return undefined;
         }
         if (selectedYear === null){
-            return;
+            return undefined;
         }
         if (summaryData === null){
-            return;
+            return undefined;
         }
-        const response = await create_word_file({
+        return `${baseURL}${create_word_file_url({
             organization_id:selectedOrgId,
             year:selectedYear,
             summary_type:summaryData.summary_type,
             month_number:getMonth(selectedMonth),
             event_id: selectedEventId === "all" ? null : Number(selectedEventId),
-        })
-        
-        if (response === null){
-            return;
-        }
-        
-        const filename = "report.docx"
-        const blob = new Blob([response.data], {type:response.headers["content-type"]});
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', filename);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        window.URL.revokeObjectURL(url);
+        })}`
 
-    };
+    }
+    const report_download_url = make_report_url();
 
     const renderSummaryTable = (summary: ReceiptSummaryCategoryDto[], type: TxType) => {
         const total = type === "INCOME" ? totalIncome : totalExpense;
@@ -240,11 +226,13 @@ export default function SummaryView() {
                         )}
 
                         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                            <Button onClick={downloadReport} className="w-full sm:w-auto">
-                                <Download className="w-4 h-4 mr-2" />
-                                보고서
+                            <Button asChild disabled={report_download_url === undefined} className="w-full sm:w-auto">
+                                <a href={report_download_url} download="report.docx">
+                                    <Download className="w-4 h-4 mr-2" />
+                                    보고서
+                                </a>
                             </Button>
-                            <Button onClick={downloadReceipts} variant="outline" className="w-full sm:w-auto">
+                            <Button variant="outline" className="w-full sm:w-auto">
                                 <ImageIcon className="w-4 h-4 mr-2" />
                                 영수증
                             </Button>

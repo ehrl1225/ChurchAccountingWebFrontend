@@ -15,11 +15,13 @@ import { useOrganizations } from "@/lib/api/organization_context";
 import { CategoryResponseDto } from "@/lib/api/response/category_response";
 import { EventResponseDTO } from "@/lib/api/response/event_response";
 import { ReceiptResponseDto } from "@/lib/api/response/receipt_response";
-import { Filter, ImageIcon, Pencil, Trash2} from "lucide-react";
+import { Download, Filter, ImageIcon, Pencil, Trash2, Upload} from "lucide-react";
 import { useEffect, useState } from "react";
 import { ReceiptTable } from "./_component/receipt_table";
 import { AddReceiptDialog } from "./_component/add_receipt_dialog";
 import { useFile } from "@/lib/api/hook/file_hook";
+import { UploadReceiptDialog } from "./_component/upload_receipt_dialog";
+import { MobileReceiptCard } from "./_component/mobile_receipt_card";
 
 export default function TransactionTable() {
     const [imageDialogOpen, setImageDialogOpen] = useState(false);
@@ -90,14 +92,6 @@ export default function TransactionTable() {
         fetchCategories(null);
         fetchReceipts();
     },[selectedOrgId, selectedYear])
-
-    // useEffect(() => {
-    //     const timer = setTimeout(() => {
-    //         resetForm();
-    //     }, 150)
-    //     return () => clearTimeout(timer);
-
-    // }, [editDialogOpen])
 
 
     const handleViewImage = async (image: string) => {
@@ -185,16 +179,23 @@ export default function TransactionTable() {
                             등록된 모든 수입 및 지출 항목을 확인하세요
                         </CardDescription>
                     </div>
-                    <AddReceiptDialog
-                        dialogOpen={editDialogOpen}
-                        setDialogOpen={setEditDialogOpen}
-                        editingTransaction={editingTransaction}
-                        setEditingTransaction={setEditingTransaction}
-                        categories={categories}
-                        events={events}
-                        handleViewImage={handleViewImage}
-                        fetchReceipts={fetchReceipts}
-                    />
+                    <div className="flex gap-4">
+                        <UploadReceiptDialog/>
+                        <Button variant="outline" className="w-full sm:w-auto">
+                            <Download className="w-4 h-4 mr-2"/>
+                            엑셀로 다운로드
+                        </Button>
+                        <AddReceiptDialog
+                            dialogOpen={editDialogOpen}
+                            setDialogOpen={setEditDialogOpen}
+                            editingTransaction={editingTransaction}
+                            setEditingTransaction={setEditingTransaction}
+                            categories={categories}
+                            events={events}
+                            handleViewImage={handleViewImage}
+                            fetchReceipts={fetchReceipts}
+                        />
+                    </div>
                 </div>
                 
                 {/* Date Filters */}
@@ -302,86 +303,12 @@ export default function TransactionTable() {
                     </div>
 
                     {/* Mobile Card View */}
-                    <div className="lg:hidden space-y-4">
-                        {filteredTransactions.map((transaction) => (
-                        <Card key={transaction.id} className="overflow-hidden">
-                            <CardContent className="p-4">
-                                <div className="space-y-3">
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <Badge variant={transaction.tx_type === "INCOME" ? 'default' : 'destructive'} style={transaction.tx_type === "INCOME"? {backgroundColor: '#1E88E5' }:undefined}>
-                                                    {transaction.tx_type === "INCOME" ? '수입' : '지출'}
-                                                </Badge>
-                                                {transaction.receipt_image_id && (
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => handleViewImage(transaction.receipt_image_file_name!)}
-                                                >
-                                                    <ImageIcon className="w-3 h-3 mr-1" />
-                                                    영수증
-                                                </Button>
-                                                )}
-                                            </div>
-                                            <h3 className="font-medium">{transaction.name}</h3>
-                                            <p className={`text-lg ${transaction.tx_type === "INCOME" ? 'text-blue-600' : 'text-red-600'}`}>
-                                                {formatCurrency(transaction.amount)}원
-                                            </p>
-                                        </div>
-                                        <div className="flex gap-1">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => handleOpenDialog(transaction)}
-                                        >
-                                            <Pencil className="w-4 h-4" />
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => onDelete(transaction.id)}
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="grid grid-cols-2 gap-2 text-sm">
-                                        <div>
-                                            <span className="text-gray-500">서류상 날짜:</span>
-                                            <p>{transaction.paper_date}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-gray-500">실제 날짜:</span>
-                                            <p>{transaction.actual_date}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-gray-500">관:</span>
-                                            <p>{transaction.category_name}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-gray-500">항목:</span>
-                                            <p>{transaction.item_name}</p>
-                                        </div>
-                                        {transaction.event_id && (
-                                        <div className="col-span-2">
-                                            <span className="text-gray-500">행사:</span>
-                                            <p>{getEventName(transaction.event_id)}</p>
-                                        </div>
-                                        )}
-                                        {transaction.etc && (
-                                        <div className="col-span-2">
-                                            <span className="text-gray-500">비고:</span>
-                                            <p className="text-gray-700">{transaction.etc}</p>
-                                        </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                        ))}
-                    </div>
+                    <MobileReceiptCard 
+                    filteredTransactions={filteredTransactions}
+                    handleOpenDialog={handleOpenDialog}
+                    handleViewImage={handleViewImage}
+                    fetchReceipts={fetchReceipts}
+                    />
                 </>
                 )}
 

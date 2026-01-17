@@ -27,7 +27,23 @@ export const useWord = () =>{
         return null;
     }
 
+    const create_word_file_url = (create_settlement:CreateSettlementDto) => {
+        const params = new URLSearchParams({
+            summary_type:create_settlement.summary_type,
+            organization_id:create_settlement.organization_id.toString(),
+            year:create_settlement.year.toString()
+        })
+        if (create_settlement.month_number !== null){
+            params.set("month_number", create_settlement.month_number.toString())
+        }
+        if (create_settlement.event_id !== null){
+            params.set("event_id", create_settlement.event_id.toString());
+        }
+        return `${domain_url}/?${params}`
+    }
+
     return {
-        create_word_file
+        create_word_file,
+        create_word_file_url
     }
 }
