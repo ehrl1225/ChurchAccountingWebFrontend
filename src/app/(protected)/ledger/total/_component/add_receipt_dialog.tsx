@@ -66,12 +66,25 @@ export const AddReceiptDialog = forwardRef<AddReceiptDialogRef, AddReceiptDialog
         }
     }));
 
+    const setReceiptImageUrlFromFileName = async (fileName: string) => {
+        if (!selectedOrgId) return;
+        const urlResponse = await get_presigned_get_url("receipt", selectedOrgId, fileName);
+        if (urlResponse) {
+            setReceiptImageURL(urlResponse.url);
+        }
+    }
+
     useEffect(() => {
         if (open) {
             if (editingTransaction) {
-                setReceiptImage(editingTransaction.receipt_image_file_name|| undefined);
-                setReceiptImageUrlFromReceiptImage();
-                setReceiptImageId(editingTransaction.receipt_image_id)
+                const fileName = editingTransaction.receipt_image_file_name;
+                if (fileName) {
+                    setReceiptImageUrlFromFileName(fileName);
+                } else {
+                    setReceiptImageURL(null);
+                }
+                setReceiptImage(editingTransaction.receipt_image_file_name || undefined);
+                setReceiptImageId(editingTransaction.receipt_image_id);
                 setDocumentDate(editingTransaction.paper_date);
                 setActualDate(editingTransaction.actual_date || "");
                 setName(editingTransaction.name);
@@ -89,6 +102,7 @@ export const AddReceiptDialog = forwardRef<AddReceiptDialogRef, AddReceiptDialog
 
 
     const resetForm = () => {
+        setReceiptImageURL(null);
         setReceiptImage(undefined);
         setReceiptImageId(null);
         setDocumentDate('');
@@ -100,20 +114,6 @@ export const AddReceiptDialog = forwardRef<AddReceiptDialogRef, AddReceiptDialog
         setSecondaryCategory('');
         setEventId('');
         setNote('');
-    }
-
-    const setReceiptImageUrlFromReceiptImage= async ()=>{
-        if (selectedOrgId === null){
-            return;
-        }
-        if (receiptImage === undefined){
-            return;
-        }
-        const image_url = await get_presigned_get_url("receipt",selectedOrgId, receiptImage);
-        if (image_url === null){
-            return;
-        }
-        setReceiptImageURL(image_url.url);
     }
 
     const onAdd = async () => {
@@ -182,47 +182,45 @@ export const AddReceiptDialog = forwardRef<AddReceiptDialogRef, AddReceiptDialog
     }
 
     const handleRemoveImage = () => {
+        setReceiptImageURL(null);
         setReceiptImage(undefined);
+        setReceiptImageId(null);
     }
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file) return;
-        if (selectedOrgId === null){
-            return;
-        }
+        if (!file || !selectedOrgId) return;
+
         const options = {
             maxSizeMB: 1,
             maxWidthOrHeight: 1920,
             useWebWorker: true
         };
-        const compressedFile = await imageCompression(file, options)
+        const compressedFile = await imageCompression(file, options);
+        
         const post_url_response = await get_presigned_post_url("receipt",{
             organization_id:selectedOrgId,
             file_name:file.name,
         });
-        if (post_url_response === null){
-            return;
-        }
+
+        if (!post_url_response) return;
+
         const formData = new FormData();
+        Object.entries(post_url_response.fields).forEach(([key, value]) => {
+            formData.append(key, value as string);
+        });
         formData.append('file', compressedFile);
+
         try{
-            await axios.post(post_url_response.url, formData, {})
+            await axios.post(post_url_response.url, formData, {});
         }catch(e){
+            // Add error handling toast
             return;
         }
 
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setReceiptImageId(post_url_response.id);
-            setReceiptImage(reader.result as string);
-        };
-        reader.readAsDataURL(compressedFile);
-        const image_url = await get_presigned_get_url("receipt",selectedOrgId,post_url_response.file_name);
-        if (image_url === null){
-            return;
-        }
-        setReceiptImageURL(image_url.url);
+        setReceiptImageId(post_url_response.id);
+        setReceiptImage(post_url_response.file_name); // Set the actual filename
+        await setReceiptImageUrlFromFileName(post_url_response.file_name);
     }
 
     const selectedPrimaryCategory = categories.find(c => c.id.toString() === primaryCategory);
