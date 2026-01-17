@@ -34,6 +34,7 @@ export default function TransactionTable() {
     const [endDate, setEndDate] = useState('');
     const [showFilters, setShowFilters] = useState(false);
     const [selectedMonth, setSelectedMonth] = useState('');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
     
     // Form states
     const [categories, setCategories] = useState<CategoryResponseDto[]>([]);
@@ -155,6 +156,12 @@ export default function TransactionTable() {
         }
         
         return true;
+    }).sort((a, b) => {
+        if (sortOrder === 'desc') {
+            return b.paper_date.localeCompare(a.paper_date);
+        } else {
+            return a.paper_date.localeCompare(b.paper_date);
+        }
     });
 
     const totalIncome = filteredTransactions
@@ -248,7 +255,19 @@ export default function TransactionTable() {
                     </div>
                 
                 {showFilters && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 p-4 bg-gray-50 rounded-lg">
+                        <div className="space-y-2">
+                            <Label>정렬</Label>
+                            <Select value={sortOrder} onValueChange={(value: 'asc' | 'desc') => setSortOrder(value)}>
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="desc">최신순</SelectItem>
+                                    <SelectItem value="asc">오래된순</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                         <div className="space-y-2">
                             <Label>날짜 기준</Label>
                             <Select value={dateFilterType} onValueChange={(value: 'document' | 'actual') => setDateFilterType(value)}>
