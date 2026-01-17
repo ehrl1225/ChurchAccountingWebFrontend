@@ -12,27 +12,14 @@ export interface ReceiptTableInput{
     filteredTransactions:ReceiptResponseDto[],
     handleOpenDialog:(receipt:ReceiptResponseDto)=>void
     handleViewImage:(reciept:string) => void
-    fetchReceipts: () => void
+    onDelete: (id: number) => Promise<void>
 }
 
-export function ReceiptTable({filteredTransactions, handleOpenDialog, handleViewImage, fetchReceipts}:ReceiptTableInput) {
-    const {delete_receipt} = useReceipt();
-    const {selectedOrgId} = useOrganizations();
+export function ReceiptTable({filteredTransactions, handleOpenDialog, handleViewImage, onDelete}:ReceiptTableInput) {
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('ko-KR').format(amount);
     };
-
-    const onDelete = async (id:number) =>{
-        if (selectedOrgId === null){
-            return;
-        }
-        await delete_receipt({
-            organization_id:selectedOrgId,
-            receipt_id:id
-        })
-        await fetchReceipts();
-    }
 
     return (
         <Table>

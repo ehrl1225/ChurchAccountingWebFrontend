@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,34 +12,33 @@ import { CategoryResponseDto } from "@/lib/api/response/category_response";
 import { EventResponseDTO } from "@/lib/api/response/event_response";
 import { ReceiptResponseDto } from "@/lib/api/response/receipt_response";
 import { ImageIcon, Plus, Upload, X } from "lucide-react";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import imageCompression from "browser-image-compression";
 import { useReceipt } from "@/lib/api/hook/receipt_hook";
 import { useFile } from "@/lib/api/hook/file_hook";
 import axios from "axios";
 
-export interface addReceiptDialogInput {
-    dialogOpen: boolean,
-    setDialogOpen: (status:boolean) => void,
-    editingTransaction:ReceiptResponseDto | null,
-    setEditingTransaction: (receipt:ReceiptResponseDto| null)=>void;
+export interface AddReceiptDialogProps {
     categories:CategoryResponseDto[],
     events:EventResponseDTO[],
     handleViewImage: (image:string) => void,
-    fetchReceipts: () => Promise<void>;
+    onReceiptUpdate: (receipt: ReceiptResponseDto, isNew: boolean) => void;
 }
 
-export function AddReceiptDialog(
-    {
-        dialogOpen, 
-        setDialogOpen, 
-        editingTransaction, 
-        setEditingTransaction,
+export interface AddReceiptDialogRef {
+    show: (transaction?: ReceiptResponseDto) => void;
+}
+
+export const AddReceiptDialog = forwardRef<AddReceiptDialogRef, AddReceiptDialogProps>(
+    ({
         categories, 
         events, 
         handleViewImage,
-        fetchReceipts,
-    }:addReceiptDialogInput){
+        onReceiptUpdate,
+    }, ref) => {
+    const [open, setOpen] = useState(false);
+    const [editingTransaction, setEditingTransaction] = useState<ReceiptResponseDto | null>(null);
+
     const [documentDate, setDocumentDate] = useState('');
     const [actualDate, setActualDate] = useState('');
     const [name, setName] = useState('');
@@ -55,6 +54,39 @@ export function AddReceiptDialog(
     const {selectedOrgId,selectedYear} = useOrganizations();
     const {create_receipt, update_receipt} = useReceipt();
     const {get_presigned_post_url, get_presigned_get_url} = useFile();
+    
+    useImperativeHandle(ref, () => ({
+        show: (transaction) => {
+            if (transaction) {
+                setEditingTransaction(transaction);
+            } else {
+                setEditingTransaction(null);
+            }
+            setOpen(true);
+        }
+    }));
+
+    useEffect(() => {
+        if (open) {
+            if (editingTransaction) {
+                setReceiptImage(editingTransaction.receipt_image_file_name|| undefined);
+                setReceiptImageUrlFromReceiptImage();
+                setReceiptImageId(editingTransaction.receipt_image_id)
+                setDocumentDate(editingTransaction.paper_date);
+                setActualDate(editingTransaction.actual_date || "");
+                setName(editingTransaction.name);
+                setAmount(editingTransaction.amount.toString());
+                setType(editingTransaction.tx_type);
+                setPrimaryCategory(editingTransaction.category_id.toString());
+                setSecondaryCategory(editingTransaction.item_id.toString());
+                setEventId(editingTransaction.event_id?.toString()||'');
+                setNote(editingTransaction.etc || "");
+            } else {
+                resetForm();
+            }
+        }
+    }, [open, editingTransaction]);
+
 
     const resetForm = () => {
         setReceiptImage(undefined);
@@ -67,6 +99,7 @@ export function AddReceiptDialog(
         setPrimaryCategory('');
         setSecondaryCategory('');
         setEventId('');
+        setNote('');
     }
 
     const setReceiptImageUrlFromReceiptImage= async ()=>{
@@ -83,38 +116,15 @@ export function AddReceiptDialog(
         setReceiptImageURL(image_url.url);
     }
 
-    useEffect(()=>{
-        if (dialogOpen){
-            if (editingTransaction) {
-                setReceiptImage(editingTransaction.receipt_image_file_name|| undefined);
-                setReceiptImageUrlFromReceiptImage();
-                setReceiptImageId(editingTransaction.receipt_image_id)
-                setDocumentDate(editingTransaction.paper_date);
-                setActualDate(editingTransaction.actual_date || "");
-                setName(editingTransaction.name);
-                setAmount(editingTransaction.amount.toString());
-                setType(editingTransaction.tx_type);
-                setPrimaryCategory(editingTransaction.category_id.toString());
-                setSecondaryCategory(editingTransaction.item_id.toString());
-                setEventId(editingTransaction.event_id?.toString()||'');
-                setNote(editingTransaction.etc || "");
-                return;
-            }
-        }
-        setEditingTransaction(null);
-        resetForm();
-    }
-    ,[dialogOpen]);
-
     const onAdd = async () => {
         if (selectedOrgId === null){
-            return;
+            return null;
         }
         if (selectedYear === null) {
-            return;
+            return null;
         }
         
-        await create_receipt({
+        return await create_receipt({
             receipt_image_id: receiptImageId,
             paper_date:documentDate,
             actual_date:actualDate===""?null:actualDate,
@@ -128,18 +138,16 @@ export function AddReceiptDialog(
             organization_id:selectedOrgId,
             year:selectedYear,
         })
-
-        
     }
 
     const onUpdate = async (id:number) => {
         if (selectedOrgId === null) {
-            return;
+            return null;
         }
         if (selectedYear === null) {
-            return;
+            return null;
         }
-        await update_receipt({
+        return await update_receipt({
             organization_id:selectedOrgId,
             receipt_id:id,
             receipt_image_id:receiptImageId,
@@ -156,20 +164,21 @@ export function AddReceiptDialog(
     }
 
     const handleSubmit = async (e:FormEvent) =>{
-        e.preventDefault()
-
+        e.preventDefault();
+        let receipt;
+        let isNew = false;
         if (editingTransaction) {
-            await onUpdate(editingTransaction.id);
+            receipt = await onUpdate(editingTransaction.id);
         }else {
-            await onAdd();
+            receipt = await onAdd();
+            isNew = true;
         }
-        await fetchReceipts();
-        setDialogOpen(false);
-        resetForm();
-    }
 
-    const handleOpenDialog = () => {
-        setDialogOpen(false);
+        if(receipt){
+            onReceiptUpdate(receipt, isNew);
+        }
+        
+        setOpen(false);
     }
 
     const handleRemoveImage = () => {
@@ -182,14 +191,12 @@ export function AddReceiptDialog(
         if (selectedOrgId === null){
             return;
         }
-        console.log("test");
         const options = {
             maxSizeMB: 1,
             maxWidthOrHeight: 1920,
             useWebWorker: true
         };
         const compressedFile = await imageCompression(file, options)
-        console.log("try get url");
         const post_url_response = await get_presigned_post_url("receipt",{
             organization_id:selectedOrgId,
             file_name:file.name,
@@ -197,11 +204,10 @@ export function AddReceiptDialog(
         if (post_url_response === null){
             return;
         }
-        console.log(`url = ${post_url_response.url}`)
         const formData = new FormData();
         formData.append('file', compressedFile);
         try{
-            const response = await axios.post(post_url_response.url, formData, {})
+            await axios.post(post_url_response.url, formData, {})
         }catch(e){
             return;
         }
@@ -217,20 +223,12 @@ export function AddReceiptDialog(
             return;
         }
         setReceiptImageURL(image_url.url);
-
-        
     }
 
     const selectedPrimaryCategory = categories.find(c => c.id.toString() === primaryCategory);
 
     return (
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-                <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
-                    <Plus className="w-4 h-4 mr-2" />
-                    항목 추가
-                </Button>
-            </DialogTrigger>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto w-[95vw]">
                 <DialogHeader>
                     <DialogTitle>{editingTransaction ? '항목 수정' : '항목 추가'}</DialogTitle>
@@ -427,7 +425,7 @@ export function AddReceiptDialog(
                         <Button 
                             type="button" 
                             variant="outline" 
-                            onClick={() => setDialogOpen(false)}
+                            onClick={() => setOpen(false)}
                         >
                             취소
                         </Button>
@@ -439,4 +437,5 @@ export function AddReceiptDialog(
             </DialogContent>
         </Dialog>
     )
-}
+});
+AddReceiptDialog.displayName = "AddReceiptDialog";

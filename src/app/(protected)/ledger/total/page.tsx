@@ -16,18 +16,18 @@ import { CategoryResponseDto } from "@/lib/api/response/category_response";
 import { EventResponseDTO } from "@/lib/api/response/event_response";
 import { ReceiptResponseDto } from "@/lib/api/response/receipt_response";
 import { Download, Filter, ImageIcon, Pencil, Trash2, Upload} from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ReceiptTable } from "./_component/receipt_table";
-import { AddReceiptDialog } from "./_component/add_receipt_dialog";
+import { AddReceiptDialog, AddReceiptDialogRef } from "./_component/add_receipt_dialog";
 import { useFile } from "@/lib/api/hook/file_hook";
 import { UploadReceiptDialog } from "./_component/upload_receipt_dialog";
 import { MobileReceiptCard } from "./_component/mobile_receipt_card";
+import { Plus } from "lucide-react";
 
 export default function TransactionTable() {
+    const dialogRef = useRef<AddReceiptDialogRef>(null);
     const [imageDialogOpen, setImageDialogOpen] = useState(false);
-    const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [selectedImage, setSelectedImage] = useState<string | undefined>();
-    const [editingTransaction, setEditingTransaction] = useState<ReceiptResponseDto| null>(null);
     // Filter states
     const [dateFilterType, setDateFilterType] = useState<'document' | 'actual'>('document');
     const [startDate, setStartDate] = useState('');
@@ -106,24 +106,29 @@ export default function TransactionTable() {
         setImageDialogOpen(true);
     };
 
-    const handleOpenDialog = async (transaction?: ReceiptResponseDto) => {
-        if (transaction) {
-            console.log(transaction);
-            setEditingTransaction(transaction);
-        } 
-        setEditDialogOpen(true);
+    const handleOpenDialog = (transaction?: ReceiptResponseDto) => {
+        dialogRef.current?.show(transaction);
     };
 
+    const handleReceiptUpdate = (receipt: ReceiptResponseDto, isNew: boolean) => {
+        if (isNew) {
+            setTransactions(prev => [receipt, ...prev]);
+        } else {
+            setTransactions(prev => prev.map(t => t.id === receipt.id ? receipt : t));
+        }
+    };
 
     const onDelete = async (id:number) => {
         if (selectedOrgId === null){
             return;
         }
-        await delete_receipt({
+        const success = await delete_receipt({
             organization_id:selectedOrgId,
             receipt_id:id
         })
-        await fetchReceipts();
+        if (success) {
+            setTransactions(prev => prev.filter(t => t.id !== id));
+        }
     }
 
 
@@ -154,7 +159,7 @@ export default function TransactionTable() {
     const totalIncome = filteredTransactions
         .filter(t => t.tx_type === "INCOME")
         .reduce((sum, t) => sum + t.amount, 0);
-
+        
     const totalExpense = filteredTransactions
         .filter(t => t.tx_type === "OUTCOME")
         .reduce((sum, t) => sum + t.amount, 0);
@@ -185,15 +190,16 @@ export default function TransactionTable() {
                             <Download className="w-4 h-4 mr-2"/>
                             엑셀로 다운로드
                         </Button>
+                        <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
+                            <Plus className="w-4 h-4 mr-2" />
+                            항목 추가
+                        </Button>
                         <AddReceiptDialog
-                            dialogOpen={editDialogOpen}
-                            setDialogOpen={setEditDialogOpen}
-                            editingTransaction={editingTransaction}
-                            setEditingTransaction={setEditingTransaction}
+                            ref={dialogRef}
                             categories={categories}
                             events={events}
                             handleViewImage={handleViewImage}
-                            fetchReceipts={fetchReceipts}
+                            onReceiptUpdate={handleReceiptUpdate}
                         />
                     </div>
                 </div>
@@ -299,7 +305,7 @@ export default function TransactionTable() {
                         filteredTransactions={filteredTransactions} 
                         handleOpenDialog={handleOpenDialog} 
                         handleViewImage={handleViewImage} 
-                        fetchReceipts={fetchReceipts}/>
+                        onDelete={onDelete}/>
                     </div>
 
                     {/* Mobile Card View */}
@@ -307,7 +313,7 @@ export default function TransactionTable() {
                     filteredTransactions={filteredTransactions}
                     handleOpenDialog={handleOpenDialog}
                     handleViewImage={handleViewImage}
-                    fetchReceipts={fetchReceipts}
+                    onDelete={onDelete}
                     />
                 </>
                 )}

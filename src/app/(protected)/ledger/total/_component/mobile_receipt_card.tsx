@@ -12,33 +12,19 @@ export interface MobileReceiptCardInput {
     filteredTransactions:ReceiptResponseDto[],
     handleOpenDialog:(receipt:ReceiptResponseDto)=>void,
     handleViewImage:(receipt:string) => void,
-    fetchReceipts:() => void
-
+    onDelete: (id: number) => Promise<void>
 }
 
 export function MobileReceiptCard ({
     filteredTransactions, 
     handleOpenDialog, 
     handleViewImage, 
-    fetchReceipts
+    onDelete
 }:MobileReceiptCardInput) {
-    const {delete_receipt} = useReceipt();
-    const {selectedOrgId} = useOrganizations();
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('ko-KR').format(amount);
     };
-
-    const onDelete = async (id:number) =>{
-        if (selectedOrgId === null){
-            return;
-        }
-        await delete_receipt({
-            organization_id:selectedOrgId,
-            receipt_id:id
-        })
-        await fetchReceipts();
-    }
 
     return (
         <div className="lg:hidden space-y-4">

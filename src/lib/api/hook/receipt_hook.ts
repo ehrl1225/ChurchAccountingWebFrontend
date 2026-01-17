@@ -6,11 +6,12 @@ import { ReceiptResponseDto, ReceiptSummaryDto, SummaryType } from "../response/
 export const useReceipt = () => {
     const domain_url = `/ledger/receipt`;
 
-    const create_receipt = async (create_receipt:CreateReceiptDto) =>{
+    const create_receipt = async (create_receipt:CreateReceiptDto):Promise<ReceiptResponseDto | null> =>{
         try{
-            const response = await axiosInstance.post(`${domain_url}/`, create_receipt, {})
+            const response = await axiosInstance.post<ReceiptResponseDto>(`${domain_url}/`, create_receipt, {})
+            return response.data;
         } catch(error){
-
+            return null;
         }
     }
 
