@@ -33,6 +33,7 @@ export default function TransactionTable() {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [showFilters, setShowFilters] = useState(false);
+    const [selectedMonth, setSelectedMonth] = useState('');
     
     // Form states
     const [categories, setCategories] = useState<CategoryResponseDto[]>([]);
@@ -172,6 +173,24 @@ export default function TransactionTable() {
     const clearFilters = () => {
         setStartDate('');
         setEndDate('');
+        setSelectedMonth('');
+    };
+
+    const handleMonthChange = (month: string) => {
+        setSelectedMonth(month);
+        if (month === "" || month === "all") {
+            clearFilters();
+        } else if (selectedYear) {
+            const year = selectedYear;
+            const monthInt = parseInt(month, 10);
+            const firstDay = new Date(year, monthInt - 1, 1);
+            const lastDay = new Date(year, monthInt, 0);
+            
+            const pad = (num:number) => num.toString().padStart(2, '0');
+            
+            setStartDate(`${year}-${pad(monthInt)}-01`);
+            setEndDate(`${year}-${pad(monthInt)}-${pad(lastDay.getDate())}`);
+        }
     };
 
     return (
@@ -242,6 +261,23 @@ export default function TransactionTable() {
                             </SelectContent>
                             </Select>
                         </div>
+
+                        <div className="space-y-2">
+                            <Label>월별 필터</Label>
+                            <Select value={selectedMonth} onValueChange={handleMonthChange}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="월 선택" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">전체</SelectItem>
+                                    {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+                                    <SelectItem key={month} value={month.toString()}>
+                                        {month}월
+                                    </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     
                         <div className="space-y-2">
                             <Label htmlFor="startDate">시작 날짜</Label>
@@ -267,15 +303,12 @@ export default function TransactionTable() {
                             />
                         </div>
                         
-                        <div className="space-y-2">
-                            <Label className="text-sm text-gray-600">필터링된 항목</Label>
-                            <div className="text-2xl font-semibold">{filteredTransactions.length}개</div>
-                        </div>
+                        
                     </div>
                 )}
                 </div>
                 
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 pt-4">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 pt-4 items-center">
                     <div className="flex items-center gap-2">
                         <span className="text-sm text-gray-600">총 수입:</span>
                         <span className="text-blue-600">{formatCurrency(totalIncome)}원</span>
@@ -289,6 +322,9 @@ export default function TransactionTable() {
                         <span className={totalIncome - totalExpense >= 0 ? 'text-green-600' : 'text-red-600'}>
                         {formatCurrency(totalIncome - totalExpense)}원
                         </span>
+                    </div>
+                    <div className="ml-auto text-sm text-gray-600">
+                        필터링된 항목: <span className="font-semibold">{filteredTransactions.length}개</span>
                     </div>
                 </div>
             </CardHeader>
