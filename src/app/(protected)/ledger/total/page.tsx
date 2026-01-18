@@ -23,6 +23,7 @@ import { useFile } from "@/lib/api/hook/file_hook";
 import { UploadReceiptDialog } from "./_component/upload_receipt_dialog";
 import { MobileReceiptCard } from "./_component/mobile_receipt_card";
 import { Plus } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { DownloadReceiptDialog } from "./_component/download_receipt_dialog";
 
 export default function TransactionTable() {
@@ -36,6 +37,8 @@ export default function TransactionTable() {
     const [showFilters, setShowFilters] = useState(false);
     const [selectedMonth, setSelectedMonth] = useState('');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+    const [carryForward, setCarryForward] = useState(false);
+    const [carryForwardAmount, setCarryForwardAmount] = useState(0);
     
     // Form states
     const [categories, setCategories] = useState<CategoryResponseDto[]>([]);
@@ -95,6 +98,22 @@ export default function TransactionTable() {
         fetchCategories(null);
         fetchReceipts();
     },[selectedOrgId, selectedYear])
+
+    useEffect(() => {
+        if (carryForward && startDate) {
+            const amount = transactions
+                .filter(t => {
+                    const dateToCompare = dateFilterType === 'document' ? t.paper_date : (t.actual_date || t.paper_date);
+                    return dateToCompare < startDate; 
+                })
+                .reduce((acc, t) => {
+                    return t.tx_type === 'INCOME' ? acc + t.amount : acc - t.amount;
+                }, 0);
+            setCarryForwardAmount(amount);
+        } else {
+            setCarryForwardAmount(0);
+        }
+    }, [carryForward, startDate, transactions, dateFilterType]);
 
 
     const handleViewImage = async (image: string) => {
@@ -177,6 +196,7 @@ export default function TransactionTable() {
         setStartDate('');
         setEndDate('');
         setSelectedMonth('');
+        setCarryForward(false);
     };
 
     const handleMonthChange = (month: string) => {
@@ -248,91 +268,108 @@ export default function TransactionTable() {
                     </div>
                 
                 {showFilters && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 p-4 bg-gray-50 rounded-lg">
-                        <div className="space-y-2">
-                            <Label>정렬</Label>
-                            <Select value={sortOrder} onValueChange={(value: 'asc' | 'desc') => setSortOrder(value)}>
+                    <div className="p-4 bg-gray-50 rounded-lg space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                            <div className="space-y-2">
+                                <Label>정렬</Label>
+                                <Select value={sortOrder} onValueChange={(value: 'asc' | 'desc') => setSortOrder(value)}>
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="desc">최신순</SelectItem>
+                                        <SelectItem value="asc">오래된순</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>날짜 기준</Label>
+                                <Select value={dateFilterType} onValueChange={(value: 'document' | 'actual') => setDateFilterType(value)}>
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="desc">최신순</SelectItem>
-                                    <SelectItem value="asc">오래된순</SelectItem>
+                                    <SelectItem value="document">서류상 날짜</SelectItem>
+                                    <SelectItem value="actual">실제 날짜</SelectItem>
                                 </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>날짜 기준</Label>
-                            <Select value={dateFilterType} onValueChange={(value: 'document' | 'actual') => setDateFilterType(value)}>
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="document">서류상 날짜</SelectItem>
-                                <SelectItem value="actual">실제 날짜</SelectItem>
-                            </SelectContent>
-                            </Select>
-                        </div>
+                                </Select>
+                            </div>
 
-                        <div className="space-y-2">
-                            <Label>월별 필터</Label>
-                            <Select value={selectedMonth} onValueChange={handleMonthChange}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="월 선택" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">전체</SelectItem>
-                                    {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
-                                    <SelectItem key={month} value={month.toString()}>
-                                        {month}월
-                                    </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    
-                        <div className="space-y-2">
-                            <Label htmlFor="startDate">시작 날짜</Label>
-                            <Input
-                            id="startDate"
-                            type="date"
-                            min={`${selectedYear}-01-01`}
-                            max={`${selectedYear}-12-31`}
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                            />
-                        </div>
+                            <div className="space-y-2">
+                                <Label>월별 필터</Label>
+                                <Select value={selectedMonth} onValueChange={handleMonthChange}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="월 선택" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">전체</SelectItem>
+                                        {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
+                                        <SelectItem key={month} value={month.toString()}>
+                                            {month}월
+                                        </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         
-                        <div className="space-y-2">
-                            <Label htmlFor="endDate">종료 날짜</Label>
-                            <Input
-                            id="endDate"
-                            type="date"
-                            min={startDate === ""?`${selectedYear}-01-01`:startDate}
-                            max={`${selectedYear}-12-31`}
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                            />
+                            <div className="space-y-2">
+                                <Label htmlFor="startDate">시작 날짜</Label>
+                                <Input
+                                id="startDate"
+                                type="date"
+                                min={`${selectedYear}-01-01`}
+                                max={`${selectedYear}-12-31`}
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                />
+                            </div>
+                            
+                            <div className="space-y-2">
+                                <Label htmlFor="endDate">종료 날짜</Label>
+                                <Input
+                                id="endDate"
+                                type="date"
+                                min={startDate === ""?`${selectedYear}-01-01`:startDate}
+                                max={`${selectedYear}-12-31`}
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                                />
+                            </div>
                         </div>
-                        
-                        
+                        <div className="flex items-center space-x-2">
+                            <Checkbox id="carryForward" checked={carryForward} onCheckedChange={(checked) => setCarryForward(checked as boolean)} />
+                            <label
+                                htmlFor="carryForward"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                                이전 잔액 이월 (시작 날짜를 기준으로 계산)
+                            </label>
+                        </div>
                     </div>
                 )}
                 </div>
                 
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 pt-4 items-center">
+                <div className="flex flex-wrap gap-x-4 gap-y-2 pt-4 items-center">
+                    {carryForward && startDate && (
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-600">이월된 잔액:</span>
+                            <span className={carryForwardAmount >= 0 ? 'text-gray-800' : 'text-red-600'}>
+                                {formatCurrency(carryForwardAmount)}원
+                            </span>
+                        </div>
+                    )}
                     <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">총 수입:</span>
+                        <span className="text-sm text-gray-600">기간 내 수입:</span>
                         <span className="text-blue-600">{formatCurrency(totalIncome)}원</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">총 지출:</span>
+                        <span className="text-sm text-gray-600">기간 내 지출:</span>
                         <span className="text-red-600">{formatCurrency(totalExpense)}원</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">잔액:</span>
-                        <span className={totalIncome - totalExpense >= 0 ? 'text-green-600' : 'text-red-600'}>
-                        {formatCurrency(totalIncome - totalExpense)}원
+                    <div className="flex items-center gap-2 font-semibold">
+                        <span className="text-sm text-gray-600">{carryForward && startDate ? '최종 잔액:' : '기간 내 잔액:'}</span>
+                        <span className={(carryForwardAmount + totalIncome - totalExpense) >= 0 ? 'text-green-600' : 'text-red-600'}>
+                        {formatCurrency(carryForwardAmount + totalIncome - totalExpense)}원
                         </span>
                     </div>
                     <div className="ml-auto text-sm text-gray-600">
