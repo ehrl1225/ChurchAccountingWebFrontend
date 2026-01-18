@@ -1,5 +1,5 @@
 import axiosInstance from "../axios_instance";
-import { CreateReceiptDto, DeleteReceiptParams, EditReceiptDto, ReceiptSummaryParams, SearchAllReceiptParams } from "../request/receipt_request";
+import { CreateReceiptDto, DeleteReceiptParams, EditReceiptDto, ReceiptSummaryParams, SearchAllReceiptParams, UploadReceiptDto } from "../request/receipt_request";
 import { ReceiptResponseDto, ReceiptSummaryDto, SummaryType } from "../response/receipt_response";
 
 
@@ -72,6 +72,15 @@ export const useReceipt = () => {
         }
     }
 
+    const upload_receipt = async (upload_receipt:UploadReceiptDto) => {
+        try{
+            const response = await axiosInstance.post(`${domain_url}/upload`, upload_receipt, {})
+
+        }catch(e){
+
+        }
+    }
+
 
 
     return {
@@ -79,6 +88,7 @@ export const useReceipt = () => {
         get_all_receipts,
         get_summary_receipts,
         update_receipt,
+        upload_receipt,
         delete_receipt,
     }
 }

@@ -23,6 +23,7 @@ import { useFile } from "@/lib/api/hook/file_hook";
 import { UploadReceiptDialog } from "./_component/upload_receipt_dialog";
 import { MobileReceiptCard } from "./_component/mobile_receipt_card";
 import { Plus } from "lucide-react";
+import { DownloadReceiptDialog } from "./_component/download_receipt_dialog";
 
 export default function TransactionTable() {
     const dialogRef = useRef<AddReceiptDialogRef>(null);
@@ -172,11 +173,6 @@ export default function TransactionTable() {
         .filter(t => t.tx_type === "OUTCOME")
         .reduce((sum, t) => sum + t.amount, 0);
 
-    const getEventName = (eventId: number | null) => {
-        if (!eventId) return '-';
-        return events.find(e => e.id === eventId)?.name || '-';
-    };
-
     const clearFilters = () => {
         setStartDate('');
         setEndDate('');
@@ -212,10 +208,7 @@ export default function TransactionTable() {
                     </div>
                     <div className="flex gap-4">
                         <UploadReceiptDialog/>
-                        <Button variant="outline" className="w-full sm:w-auto">
-                            <Download className="w-4 h-4 mr-2"/>
-                            엑셀로 다운로드
-                        </Button>
+                        <DownloadReceiptDialog/>
                         <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
                             <Plus className="w-4 h-4 mr-2" />
                             항목 추가

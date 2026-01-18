@@ -48,3 +48,9 @@ export interface ReceiptSummaryParams{
     organization_id: number;
     year: number;
 }
+
+export interface UploadReceiptDto{
+    organization_id: number;
+    year:number;
+    excel_file_name: string;
+}

@@ -3,14 +3,19 @@
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { useFile } from "@/lib/api/hook/file_hook"
+import { useReceipt } from "@/lib/api/hook/receipt_hook"
 import { useOrganizations } from "@/lib/api/organization_context"
 import { DialogDescription } from "@radix-ui/react-dialog"
+import axios from "axios"
 import { Download, Upload } from "lucide-react"
 import React, { useState } from "react"
 
 export function UploadReceiptDialog() {
     const [dialogOpen, setDialogOpen] = useState<boolean>(false);
-    const {selectedOrgId} = useOrganizations();
+    const {selectedOrgId, selectedYear} = useOrganizations();
+    const {get_presigned_post_url} = useFile();
+    const {upload_receipt} = useReceipt();
     const [] = useState();
 
     const baseURL = process.env.NEXT_PUBLIC_SERVER_URL
@@ -21,6 +26,30 @@ export function UploadReceiptDialog() {
         if (selectedOrgId === null){
             return;
         }
+        if (selectedYear === null){
+            return;
+        }
+        const post_url_response = await get_presigned_post_url("excel", {
+            organization_id:selectedOrgId,
+            file_name:file.name
+        });
+        if (!post_url_response) return;
+        const formData = new FormData();
+        Object.entries(post_url_response.fields).forEach(([Key, value])=> {
+            formData.append(Key, value as string);
+        })
+        formData.append('file', file);
+        try{
+            await axios.post(post_url_response.url, formData, {});
+        }catch(e){
+            console.error(e);
+            return;
+        }
+        await upload_receipt({
+            organization_id:selectedOrgId,
+            year:selectedYear,
+            excel_file_name:post_url_response.file_name
+        });
         
     }
 
