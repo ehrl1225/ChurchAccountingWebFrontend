@@ -68,7 +68,8 @@ export const AddReceiptDialog = forwardRef<AddReceiptDialogRef, AddReceiptDialog
 
     const setReceiptImageUrlFromFileName = async (fileName: string) => {
         if (!selectedOrgId) return;
-        const urlResponse = await get_presigned_get_url("receipt", selectedOrgId, fileName);
+        if (!selectedYear) return;
+        const urlResponse = await get_presigned_get_url("receipt", selectedOrgId, selectedYear, fileName);
         if (urlResponse) {
             setReceiptImageURL(urlResponse.url);
         }
@@ -190,6 +191,7 @@ export const AddReceiptDialog = forwardRef<AddReceiptDialogRef, AddReceiptDialog
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file || !selectedOrgId) return;
+        if (!selectedYear) return;
 
         const options = {
             maxSizeMB: 1,

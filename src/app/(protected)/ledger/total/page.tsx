@@ -120,7 +120,8 @@ export default function TransactionTable() {
         if (selectedOrgId === null){
             return;
         }
-        const url = await get_presigned_get_url("receipt",selectedOrgId, image);
+        if (!selectedYear) {return;}
+        const url = await get_presigned_get_url("receipt",selectedOrgId, selectedYear, image);
         if (url === null){
             return;
         }

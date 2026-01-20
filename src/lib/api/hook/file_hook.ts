@@ -17,9 +17,9 @@ export const useFile = () => {
         return null
     }
 
-    const get_presigned_get_url = async (file_type:FileType, organization_id:number, file_name:string):Promise<FileInfoResponseDto|null> => {
+    const get_presigned_get_url = async (file_type:FileType, organization_id:number, year:number, file_name:string):Promise<FileInfoResponseDto|null> => {
         try{
-            const response = axiosInstance.get<FileInfoResponseDto>(`${domain_url}/url/${file_type}/get/${organization_id}/${file_name}`)
+            const response = axiosInstance.get<FileInfoResponseDto>(`${domain_url}/url/${file_type}/get/${organization_id}/${year}/${file_name}`)
             return (await response).data
         } catch (errro){
 

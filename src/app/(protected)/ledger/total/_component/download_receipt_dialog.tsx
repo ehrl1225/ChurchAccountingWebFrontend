@@ -2,12 +2,16 @@
 
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTrigger } from "@/components/ui/dialog"
+import { useOrganizations } from "@/lib/api/organization_context";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { Download } from "lucide-react"
 import { useState } from "react";
+import { ReceiptDownloader } from "./receipt_downloader";
+
 
 export function DownloadReceiptDialog(){
     const [openDialog, setOpenDialog] = useState(false);
+    const {selectedOrgId, selectedYear} = useOrganizations()
 
     return (
     <Dialog open={openDialog} onOpenChange={setOpenDialog}>
@@ -28,9 +32,7 @@ export function DownloadReceiptDialog(){
 
             </DialogHeader>
             <div className="flex flex-col">
-                <Button>
-                    데이터 엑셀 파일 생성
-                </Button>
+                <ReceiptDownloader />
             </div>
         </DialogContent>
     </Dialog>

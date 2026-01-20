@@ -31,6 +31,7 @@ export function UploadReceiptDialog() {
         }
         const post_url_response = await get_presigned_post_url("excel", {
             organization_id:selectedOrgId,
+            year:selectedYear,
             file_name:file.name
         });
         if (!post_url_response) return;

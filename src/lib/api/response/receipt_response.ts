@@ -1,4 +1,4 @@
-import { TxType } from "../common_enum";
+import { JobStatus, TxType } from "../common_enum";
 
 export interface ReceiptResponseDto{
     id: number;
@@ -47,4 +47,9 @@ export interface ReceiptSummaryDto{
     total_outcome: number;
     balance: number;
     categories: ReceiptSummaryCategoryDto[]
+}
+
+export interface ReceiptJobDto{
+    status: JobStatus;
+    file_url: string;
 }
