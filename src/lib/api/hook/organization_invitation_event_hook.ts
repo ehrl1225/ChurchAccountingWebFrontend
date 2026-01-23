@@ -48,7 +48,7 @@ export const useOrganizationInvitationEvent = (isAuthenticated: boolean) => {
         }
 
         eventSource.onerror = (err) => {
-            console.error("EventSource error:", err);
+            console.log("EventSource error:", err);
             setError("초대 목록을 가져오는 데 문제가 발생했습니다. 자동으로 재연결을 시도합니다.");
             setIsConnected(false);
         }

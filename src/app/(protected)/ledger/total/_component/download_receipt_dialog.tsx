@@ -31,7 +31,7 @@ export function DownloadReceiptDialog(){
                 </DialogDescription>
 
             </DialogHeader>
-            <div className="flex flex-col">
+            <div className="flex flex-col w-full justify-items-center">
                 <ReceiptDownloader />
             </div>
         </DialogContent>

@@ -228,7 +228,7 @@ export default function TransactionTable() {
                         </CardDescription>
                     </div>
                     <div className="flex gap-4">
-                        <UploadReceiptDialog/>
+                        <UploadReceiptDialog fetchReceipts={fetchReceipts}/>
                         <DownloadReceiptDialog/>
                         <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
                             <Plus className="w-4 h-4 mr-2" />

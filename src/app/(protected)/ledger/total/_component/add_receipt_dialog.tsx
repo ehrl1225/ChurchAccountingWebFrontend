@@ -202,6 +202,7 @@ export const AddReceiptDialog = forwardRef<AddReceiptDialogRef, AddReceiptDialog
         
         const post_url_response = await get_presigned_post_url("receipt",{
             organization_id:selectedOrgId,
+            year:selectedYear,
             file_name:file.name,
         });
 
@@ -226,6 +227,7 @@ export const AddReceiptDialog = forwardRef<AddReceiptDialogRef, AddReceiptDialog
     }
 
     const selectedPrimaryCategory = categories.find(c => c.id.toString() === primaryCategory);
+    const filteredPrimaryCategories = categories.filter( c => c.tx_type === type);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -363,7 +365,7 @@ export const AddReceiptDialog = forwardRef<AddReceiptDialogRef, AddReceiptDialog
                                         <SelectValue placeholder="관 선택" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {categories.map((category) => (
+                                        {filteredPrimaryCategories.map((category) => (
                                         <SelectItem key={category.id} value={category.id.toString()}>
                                             {category.name}
                                         </SelectItem>

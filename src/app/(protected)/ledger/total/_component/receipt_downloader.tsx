@@ -1,3 +1,4 @@
+"use client"
 import { useEffect, useState } from "react";
 import { JobStatus } from "../../../../../lib/api/common_enum";
 import { ReceiptJobDto } from "../../../../../lib/api/response/receipt_response";
@@ -7,6 +8,7 @@ import axiosInstance from "@/lib/api/axios_instance";
 import { useOrganizations } from "@/lib/api/organization_context";
 import { FileInfoResponseDto } from "@/lib/api/response/file_response";
 import { Spinner } from "@/components/ui/spinner";
+import { Label } from "@/components/ui/label";
 
 
 export function ReceiptDownloader () {
@@ -34,7 +36,6 @@ export function ReceiptDownloader () {
         eventSource.addEventListener("job_update", (event) => {
             console.log("Job update received:", event.data);
             const data: ReceiptJobDto = JSON.parse(event.data);
-            console.log(data);
 
             if (data.status === "completed"){
                 setJobStatus("completed");
@@ -78,35 +79,43 @@ export function ReceiptDownloader () {
 
         }
     }
+
+    const handleResetClick = async () => {
+        setFileName(null);
+        setError(null);
+        setDownloadUrl(null);
+        setJobStatus("idle");
+    }
+
     const renderContent = () => {
         switch (jobStatus) {
             case "idle":
-                return (
+                return (<div className="flex justify-center">
                     <Button onClick={handleDownloadClick}>
                         엑셀 다운로드
                     </Button>
+                </div>
                 );
             case "pending":
                 return (
-                    <div>
+                    <div className="flex justify-center">
                         <Spinner/>
-                        <p>엑셀 파일을 생성 중입니다... 잠시만 기다려 주세요.</p>
-
+                        <Label>엑셀 파일을 생성 중입니다... 잠시만 기다려 주세요.</Label>
                     </div>
                 )
             case "completed":
                 return (
-                    <div>
-                        <p>엑셀 파일 생성이 완료되었습니다.</p>
-                        <a href={downloadUrl!}>여기를 클릭하여 다운로드하세요.</a>
-                        <Button>돌아가기</Button>
+                    <div className="flex flex-col">
+                        <p className="text-center">엑셀 파일 생성이 완료되었습니다.</p>
+                        <a href={downloadUrl!} className="text-center">여기를 클릭하여 다운로드하세요.</a>
+                        <Button onClick={handleResetClick}>돌아가기</Button>
                     </div>
                 )
             case "failed":
                 return (
                     <div>
                         <p>파일 생성 중 오류가 발생했습니다.</p>
-                        <Button>
+                        <Button onClick={handleDownloadClick}>
                             다시 시도
                         </Button>
                     </div>

@@ -4,8 +4,6 @@ import { createContext, ReactNode, useContext, useEffect, useState } from "react
 import { MemberDTO } from "./response/member_response"
 import { useMember } from "./hook/member_hook";
 import { LoginFormDTO } from "./request/member_request";
-import { Card, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 interface AuthContextType {
@@ -37,7 +35,9 @@ export const AuthProvider = ({children}: {children: ReactNode})=>{
     useEffect(() => {
         if (!isLoading && isAuthenticated && pathname === '/auth/login') {
             const redirect_url = searchParams.get('redirect');
-            if (redirect_url){
+            if (redirect_url === '/auth/register'){
+                router.push('/organization');
+            }else if (redirect_url){
                 router.push(decodeURIComponent(redirect_url));
             }else{
                 router.push('/ledger/total');
