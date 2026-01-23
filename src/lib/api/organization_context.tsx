@@ -7,6 +7,7 @@ import { useAuth } from "./auth_context";
 
 interface OrganizationContextType {
     organizations: OrganizationResponseDto[];
+    setOrganizations: (organizations:OrganizationResponseDto[]) => void
     isLoading: boolean;
     fetchOrganizations: ()=>Promise<void>;
     selectedOrgId: number | null;
@@ -39,6 +40,7 @@ export const OrganizationProvider = ({children}: {children:ReactNode}) => {
 
     const value = {
         organizations,
+        setOrganizations,
         isLoading,
         fetchOrganizations,
         selectedOrgId,

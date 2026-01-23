@@ -3,91 +3,63 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/api/auth_context";
 import { useJoinedOrganization } from "@/lib/api/hook/joined_organization_hook";
 import { useOrganization } from "@/lib/api/hook/organization_hook";
 import { useOrganizationInvitation } from "@/lib/api/hook/organization_invitation_hook";
-import { OrganizationRequestDto } from "@/lib/api/request/organization_request";
 import { OrganizationResponseDto } from "@/lib/api/response/organization_response";
 import { Pencil, Plus, Trash2, UserPlus, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { MemberRole } from "@/lib/api/common_enum"
 import { JoinedOrganizatinoResponse } from "@/lib/api/response/joined_organization_response";
 import { useOrganizations } from "@/lib/api/organization_context";
+import { EditOrganizationDialog, EditOrganizationDialogRef } from "./_component/edit_organization_dialog";
 
-export default function organization_page() {
-  const {member:current_member} = useAuth();
-  const [dialogOpen, setDialogOpen] = useState(false);
+export default function OrganizationPage() {
+  const { member: current_member } = useAuth();
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
-  const [editingOrg, setEditingOrg] = useState<OrganizationResponseDto | null>(null);
   const [selectedOrgId, setSelectedOrgId] = useState<number>(0);
-  
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState<string>('');
-  const [start_year, setStartYear] = useState(new Date().getFullYear());
-  const [end_year, setEndYear] = useState(new Date().getFullYear() + 1);
   const [inviteUserId, setInviteUserId] = useState('');
+  
+  const { delete_organization } = useOrganization();
+  const { change_role, delete_joined_organization } = useJoinedOrganization();
+  const { create_organization_invitation } = useOrganizationInvitation();
+  const { organizations, setOrganizations, fetchOrganizations } = useOrganizations();
 
-  const {create_organization, update_organization, delete_organization} = useOrganization();
-  const {change_role, delete_joined_organization} = useJoinedOrganization();
-  const {create_organization_invitation} = useOrganizationInvitation();
-  const {organizations,fetchOrganizations} = useOrganizations();
-
-  const resetForm = () => {
-    setName('');
-    setDescription('');
-    setStartYear(new Date().getFullYear());
-    setEndYear(new Date().getFullYear() + 1);
-    setEditingOrg(null);
-  };
+  const dialogRef = useRef<EditOrganizationDialogRef>(null);
 
   const handleOpenDialog = (org?: OrganizationResponseDto) => {
-    if (org) {
-      setEditingOrg(org);
-      setName(org.name);
-      setDescription(org.description===null?"": org.description);
-      setStartYear(org.start_year);
-      setEndYear(org.end_year);
-    } else {
-      resetForm();
-    }
-    setDialogOpen(true);
+    dialogRef.current?.show(org);
   };
 
+  const handleOrganizationUpdate = (updatedOrg: OrganizationResponseDto, isNew: boolean) => {
+    if (isNew) {
+      setOrganizations([...organizations, updatedOrg]);
+    } else {
+      setOrganizations(organizations.map(o => o.id === updatedOrg.id ? {
+        ...o, 
+        name:updatedOrg.name,
+        description:updatedOrg.description,
+        start_year:updatedOrg.start_year,
+        end_year:updatedOrg.end_year,
+      } : o));
+    }
+  };
+  
   const handleOpenInviteDialog = (orgId: number) => {
     setSelectedOrgId(orgId);
     setInviteUserId('');
     setInviteDialogOpen(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const orgData:OrganizationRequestDto = {
-      name,
-      description,
-      start_year,
-      end_year,
-    };
-
-    if (editingOrg) {
-      await update_organization(editingOrg.id, orgData);
-    } else {
-      await create_organization(orgData);
-    }
-    await fetchOrganizations();
-    setDialogOpen(false);
-    resetForm();
-  };
-
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     if (inviteUserId.trim()) {
-      await create_organization_invitation({email:inviteUserId.trim(), organization_id:selectedOrgId});
+      await create_organization_invitation({ email: inviteUserId.trim(), organization_id: selectedOrgId });
       setInviteDialogOpen(false);
       setInviteUserId('');
     }
@@ -98,8 +70,7 @@ export default function organization_page() {
   };
 
   const canManageMembers = (org: OrganizationResponseDto) => {
-    if (org.my_role === "OWNER" || org.my_role === "ADMIN") return true;
-    else return false;
+    return org.my_role === "OWNER" || org.my_role === "ADMIN";
   };
 
   const getPermissionLabel = (permission: MemberRole) => {
@@ -111,22 +82,40 @@ export default function organization_page() {
     }
   };
 
-  const onChangeRole = async (organization:OrganizationResponseDto, member:JoinedOrganizatinoResponse, member_role:MemberRole) => {
-    await change_role(organization.id, {member_id:member.member_id, member_role});
-    await fetchOrganizations();
+  const onChangeRole = async (organization: OrganizationResponseDto, member: JoinedOrganizatinoResponse, member_role: MemberRole) => {
+    await change_role(organization.id, { member_id: member.member_id, member_role });
+    // Optimistically update the local state
+    setOrganizations(organizations.map(org => {
+      if (org.id === organization.id) {
+        return {
+          ...org,
+          members: org.members.map(m => m.id === member.id ? { ...m, member_role } : m)
+        };
+      }
+      return org;
+    }));
   }
-  const onDeleteOrganization = async (organization:OrganizationResponseDto) => {
+
+  const onDeleteOrganization = async (organization: OrganizationResponseDto) => {
     await delete_organization(organization.id);
-    await fetchOrganizations();
-
+    setOrganizations(organizations.filter(o => o.id !== organization.id));
   }
 
-  const onDeleteJoinedOrganization = async (organization:OrganizationResponseDto, joined_organization:JoinedOrganizatinoResponse) => {
+  const onDeleteJoinedOrganization = async (organization: OrganizationResponseDto, joined_organization: JoinedOrganizatinoResponse) => {
     await delete_joined_organization({
-      organizatino_id:organization.id,
-      joined_organization_id:joined_organization.id
-    })
-    await fetchOrganizations();
+      organizatino_id: organization.id,
+      joined_organization_id: joined_organization.id
+    });
+    // Optimistically update the local state
+    setOrganizations(organizations.map(org => {
+      if (org.id === organization.id) {
+        return {
+          ...org,
+          members: org.members.filter(m => m.id !== joined_organization.id)
+        };
+      }
+      return org;
+    }));
   }
 
   return (
@@ -137,82 +126,11 @@ export default function organization_page() {
             <CardTitle>조직 관리</CardTitle>
             <CardDescription>조직을 생성하고 멤버를 관리하세요</CardDescription>
           </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
-                <Plus className="w-4 h-4 mr-2" />
-                조직 추가
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="w-[95vw] max-w-md">
-              <DialogHeader>
-                <DialogTitle>{editingOrg ? '조직 수정' : '조직 추가'}</DialogTitle>
-                <DialogDescription>
-                  {editingOrg ? '조직 정보를 수정하세요' : '새로운 조직을 추가하세요'}
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="orgName">조직 이름</Label>
-                  <Input
-                    id="orgName"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="조직 이름을 입력하세요"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description">설명</Label>
-                  <Textarea
-                    id="description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="조직 설명"
-                    rows={3}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="startYear">시작 연도</Label>
-                  <Input
-                    id="start_year"
-                    type="number"
-                    value={start_year}
-                    onChange={(e) => setStartYear(Number(e.target.value))}
-                    placeholder="시작 연도"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="endYear">종료 연도</Label>
-                  <Input
-                    id="end_year"
-                    type="number"
-                    value={end_year}
-                    onChange={(e) => setEndYear(Number(e.target.value))}
-                    placeholder="종료 연도"
-                    required
-                  />
-                </div>
-
-                <div className="flex gap-2 justify-end">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => setDialogOpen(false)}
-                  >
-                    취소
-                  </Button>
-                  <Button type="submit">
-                    {editingOrg ? '수정' : '추가'}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
+            <Plus className="w-4 h-4 mr-2" />
+            조직 추가
+          </Button>
+          <EditOrganizationDialog ref={dialogRef} onOrganizationUpdate={handleOrganizationUpdate} />
         </div>
       </CardHeader>
       <CardContent>
@@ -249,7 +167,7 @@ export default function organization_page() {
                         >
                           <Pencil className="w-4 h-4" />
                         </Button>
-                        {org.my_role === "OWNER" &&<Button
+                        {org.my_role === "OWNER" && <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => onDeleteOrganization(org)}
@@ -298,7 +216,7 @@ export default function organization_page() {
                                   <select
                                     className="px-2 py-1 border border-gray-300 rounded-md text-sm"
                                     value={member.member_role}
-                                    onChange={(e) => onChangeRole(org, member,e.target.value as MemberRole)}
+                                    onChange={(e) => onChangeRole(org, member, e.target.value as MemberRole)}
                                   >
                                     <option value="READ_ONLY">읽기</option>
                                     <option value="READ_WRITE">읽기/쓰기</option>
@@ -339,7 +257,7 @@ export default function organization_page() {
                                   <select
                                     className="px-2 py-1 border border-gray-300 rounded-md text-sm w-full"
                                     value={member.member_role}
-                                    onChange={(e) => onChangeRole(org,  member, e.target.value as MemberRole)}
+                                    onChange={(e) => onChangeRole(org, member, e.target.value as MemberRole)}
                                   >
                                     <option value="READ_ONLY">읽기</option>
                                     <option value="READ_WRITE">읽기/쓰기</option>
@@ -391,9 +309,9 @@ export default function organization_page() {
                 />
               </div>
               <div className="flex gap-2 justify-end">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => setInviteDialogOpen(false)}
                 >
                   취소
