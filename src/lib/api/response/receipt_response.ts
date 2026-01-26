@@ -46,7 +46,8 @@ export interface ReceiptSummaryDto{
     total_income: number;
     total_outcome: number;
     balance: number;
-    categories: ReceiptSummaryCategoryDto[]
+    categories: ReceiptSummaryCategoryDto[];
+    carry_amount: number | null;
 }
 
 export interface ReceiptJobDto{

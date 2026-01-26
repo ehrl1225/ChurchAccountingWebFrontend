@@ -15,6 +15,7 @@ import { ReceiptSummaryCategoryDto, ReceiptSummaryDto, SummaryType } from "@/lib
 import { Download, ImageIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { DownloadReceiptImageDialog } from "./_component/download_receipt_image.dialog";
+import { useEvent } from "@/lib/api/hook/event_hook";
 
 export default function SummaryView() {
     const [filterType, setFilterType] = useState<SummaryType>(SummaryType.MONTH);
@@ -25,6 +26,7 @@ export default function SummaryView() {
     const {selectedOrgId, selectedYear} = useOrganizations();
     const [reportUrl, setReportUrl] = useState<string | null>(null);
     const {get_summary_receipts} = useReceipt();
+    const {get_event} = useEvent();
     const {create_word_file, create_word_file_url} = useWord();
 
     const totalIncome = summaryData?.total_income || 0;
@@ -63,9 +65,27 @@ export default function SummaryView() {
         setSummaryData(data)
     }
 
+    const fetchEvents = async () => {
+        if (selectedOrgId === null){
+            return;
+        }
+        if (selectedYear === null){
+            return;
+        }
+        const data = await get_event({
+            organization_id:selectedOrgId,
+            year:selectedYear,
+        });
+        setEvents(data);
+    }
+
+    useEffect(()=>{
+        fetchEvents();
+    }, [selectedOrgId, selectedYear])
+
     useEffect(()=>{
         fetchSummary();
-    }, [selectedOrgId, selectedYear, selectedMonth, selectedEventId]);
+    }, [selectedOrgId, selectedYear, selectedMonth, selectedEventId, filterType]);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('ko-KR').format(amount);
@@ -76,10 +96,6 @@ export default function SummaryView() {
         label: `${i + 1}월`,
     }));
 
-
-    const downloadReceipts = async () => {
-        
-    }
 
     const filter_categories = (tx_type:TxType) => {
         if (summaryData === null){
@@ -99,6 +115,9 @@ export default function SummaryView() {
             return undefined;
         }
         if (summaryData === null){
+            return undefined;
+        }
+        if (filterType === SummaryType.EVENT && selectedEventId === "all"){
             return undefined;
         }
         return `${baseURL}${create_word_file_url({
