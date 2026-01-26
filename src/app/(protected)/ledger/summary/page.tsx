@@ -14,6 +14,7 @@ import { EventResponseDTO } from "@/lib/api/response/event_response";
 import { ReceiptSummaryCategoryDto, ReceiptSummaryDto, SummaryType } from "@/lib/api/response/receipt_response";
 import { Download, ImageIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { DownloadReceiptImageDialog } from "./_component/download_receipt_image.dialog";
 
 export default function SummaryView() {
     const [filterType, setFilterType] = useState<SummaryType>(SummaryType.MONTH);
@@ -36,6 +37,13 @@ export default function SummaryView() {
             return null;
         }
         return Number(month)
+    }
+
+    const getNumber = (num_str:string) => {
+        if (num_str === "all"){
+            return null;
+        }
+        return Number(num_str);
     }
 
     const fetchSummary = async () => {
@@ -232,10 +240,15 @@ export default function SummaryView() {
                                     보고서
                                 </a>
                             </Button>
-                            <Button variant="outline" className="w-full sm:w-auto">
+                            {/* <Button variant="outline" className="w-full sm:w-auto">
                                 <ImageIcon className="w-4 h-4 mr-2" />
                                 영수증
-                            </Button>
+                            </Button> */}
+                            <DownloadReceiptImageDialog 
+                            summary_type={filterType} 
+                            month={getMonth(selectedMonth)}
+                            event_id={getNumber(selectedEventId)}
+                            />
                         </div>
                     </div>
 

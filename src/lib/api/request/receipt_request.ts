@@ -54,3 +54,11 @@ export interface UploadReceiptDto{
     year:number;
     excel_file_name: string;
 }
+
+export interface DownloadReceiptImageDto{
+    organization_id: number;
+    year: number;
+    summary_type: SummaryType;
+    month:number | null;
+    event_id: number | null;
+}

@@ -4,9 +4,7 @@ import { JobStatus } from "../../../../../lib/api/common_enum";
 import { ReceiptJobDto } from "../../../../../lib/api/response/receipt_response";
 import { Button } from "@/components/ui/button";
 import { useReceipt } from "@/lib/api/hook/receipt_hook";
-import axiosInstance from "@/lib/api/axios_instance";
 import { useOrganizations } from "@/lib/api/organization_context";
-import { FileInfoResponseDto } from "@/lib/api/response/file_response";
 import { Spinner } from "@/components/ui/spinner";
 import { Label } from "@/components/ui/label";
 
@@ -16,7 +14,7 @@ export function ReceiptDownloader () {
     const [jobStatus, setJobStatus] = useState<JobStatus>("idle");
     const [error, setError] = useState<string | null>(null);
     const [downloadUrl, setDownloadUrl] = useState<string| null>(null);
-    const {} = useReceipt();
+    const {download_receipt} = useReceipt();
     const {selectedOrgId, selectedYear} = useOrganizations()
     
     const domain_url = `${process.env.NEXT_PUBLIC_SERVER_URL}/ledger/receipt`
@@ -27,7 +25,7 @@ export function ReceiptDownloader () {
         if (!selectedOrgId){return;}
         if (!selectedYear){return;}
 
-        const eventSource = new EventSource(`${domain_url}/download/subscribe/${fileName}`);
+        const eventSource = new EventSource(`${domain_url}/download/excel/subscribe/${fileName}`);
 
         eventSource.onopen = () => {
             console.log("SSE connection established.");
@@ -71,8 +69,11 @@ export function ReceiptDownloader () {
         setFileName(null);
         setDownloadUrl(null);
         try{
-            const response = await axiosInstance.post<FileInfoResponseDto>(`${domain_url}/download/${selectedOrgId}/${selectedYear}`)
-            const data = response.data;
+            const data = await download_receipt(selectedOrgId, selectedYear);
+            if (data === null){
+                setJobStatus("failed");
+                return;
+            }
             setFileName(data.file_name);
             
         }catch(e) {

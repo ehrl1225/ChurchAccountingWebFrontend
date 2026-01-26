@@ -32,7 +32,7 @@ export function ReceiptUploader({fetchReceipts}:ReceiptUploaderInput) {
         if (!selectedOrgId) { return;}
         if (!selectedYear) { return;}
         
-        const eventSource = new EventSource(`${domain_url}/upload/subscribe/${fileName}`)
+        const eventSource = new EventSource(`${domain_url}/upload/excel/subscribe/${fileName}`)
         
         eventSource.onopen = () => {
             console.log("SSE connection established.");

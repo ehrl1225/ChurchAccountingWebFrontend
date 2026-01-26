@@ -1,5 +1,6 @@
 import axiosInstance from "../axios_instance";
-import { CreateReceiptDto, DeleteReceiptParams, EditReceiptDto, ReceiptSummaryParams, SearchAllReceiptParams, UploadReceiptDto } from "../request/receipt_request";
+import { CreateReceiptDto, DeleteReceiptParams, DownloadReceiptImageDto, EditReceiptDto, ReceiptSummaryParams, SearchAllReceiptParams, UploadReceiptDto } from "../request/receipt_request";
+import { FileInfoResponseDto } from "../response/file_response";
 import { ReceiptResponseDto, ReceiptSummaryDto, SummaryType } from "../response/receipt_response";
 
 
@@ -74,11 +75,31 @@ export const useReceipt = () => {
 
     const upload_receipt = async (upload_receipt:UploadReceiptDto) => {
         try{
-            const response = await axiosInstance.post(`${domain_url}/upload`, upload_receipt, {})
+            const response = await axiosInstance.post(`${domain_url}/upload/excel`, upload_receipt, {})
 
         }catch(e){
 
         }
+    }
+
+    const download_receipt = async (selectedOrgId:number, selectedYear:number):Promise<FileInfoResponseDto|null> => {
+        try{
+            const response = await axiosInstance.post<FileInfoResponseDto>(`${domain_url}/download/excel/${selectedOrgId}/${selectedYear}`)
+            return response.data;
+        }catch(e){
+
+        }
+        return null
+    }
+
+    const download_receipt_image = async (download_receipt_image_dto:DownloadReceiptImageDto):Promise<FileInfoResponseDto|null> => {
+        try{
+            const response = await axiosInstance.post<FileInfoResponseDto>(`${domain_url}/download/image`, download_receipt_image_dto)
+            return response.data;
+        }catch(e){
+
+        }
+        return null;
     }
 
 
@@ -88,7 +109,9 @@ export const useReceipt = () => {
         get_all_receipts,
         get_summary_receipts,
         update_receipt,
-        upload_receipt,
         delete_receipt,
+        upload_receipt,
+        download_receipt,
+        download_receipt_image,
     }
 }

@@ -1,6 +1,5 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -15,7 +14,7 @@ import { useOrganizations } from "@/lib/api/organization_context";
 import { CategoryResponseDto } from "@/lib/api/response/category_response";
 import { EventResponseDTO } from "@/lib/api/response/event_response";
 import { ReceiptResponseDto } from "@/lib/api/response/receipt_response";
-import { Download, Filter, ImageIcon, Pencil, Trash2, Upload} from "lucide-react";
+import { Filter} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ReceiptTable } from "./_component/receipt_table";
 import { AddReceiptDialog, AddReceiptDialogRef } from "./_component/add_receipt_dialog";
@@ -227,7 +226,7 @@ export default function TransactionTable() {
                             등록된 모든 수입 및 지출 항목을 확인하세요
                         </CardDescription>
                     </div>
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 flex-col sm:flex-row">
                         <UploadReceiptDialog fetchReceipts={fetchReceipts}/>
                         <DownloadReceiptDialog/>
                         <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
