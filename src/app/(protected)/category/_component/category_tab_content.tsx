@@ -304,7 +304,7 @@ export function CategoryTabContent ({
                                         size="icon"
                                         variant="ghost"
                                         className="h-8 w-8"
-                                        onClick={() => {}}
+                                        onClick={() => {cancelEditingCategory();}}
                                         >
                                             <X/>
                                         </Button>

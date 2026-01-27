@@ -47,6 +47,7 @@ export interface ReceiptSummaryParams{
     event_id: number | null;
     organization_id: number;
     year: number;
+    use_carry_forward:boolean;
 }
 
 export interface UploadReceiptDto{

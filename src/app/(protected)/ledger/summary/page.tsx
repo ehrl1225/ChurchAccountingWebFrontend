@@ -16,6 +16,7 @@ import { Download, ImageIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { DownloadReceiptImageDialog } from "./_component/download_receipt_image.dialog";
 import { useEvent } from "@/lib/api/hook/event_hook";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function SummaryView() {
     const [filterType, setFilterType] = useState<SummaryType>(SummaryType.MONTH);
@@ -24,16 +25,24 @@ export default function SummaryView() {
     const [events, setEvents] = useState<EventResponseDTO[]>([]);
     const [summaryData, setSummaryData] = useState<ReceiptSummaryDto | null>(null);
     const {selectedOrgId, selectedYear} = useOrganizations();
-    const [reportUrl, setReportUrl] = useState<string | null>(null);
+    const [useCarryForward, setUseCarryForward] = useState<boolean>(false);
     const {get_summary_receipts} = useReceipt();
     const {get_event} = useEvent();
-    const {create_word_file, create_word_file_url} = useWord();
+    const {create_word_file_url} = useWord();
+
+    useEffect(()=>{
+        fetchEvents();
+    }, [selectedOrgId, selectedYear])
+
+    useEffect(()=>{
+        fetchSummary();
+    }, [selectedOrgId, selectedYear, selectedMonth, selectedEventId, filterType]);
 
     const totalIncome = summaryData?.total_income || 0;
     const totalExpense = summaryData?.total_outcome || 0;
-    const balance = summaryData?.balance || 0;
+    const carryAmount = summaryData?.carry_amount || 0;
+    const balance = (summaryData?.balance || 0) + (useCarryForward ? carryAmount: 0);
     const baseURL = process.env.NEXT_PUBLIC_SERVER_URL
-
     const getMonth = (month:string) => {
         if (month === "all"){
             return null;
@@ -60,7 +69,8 @@ export default function SummaryView() {
             year:selectedYear,
             summary_type:filterType,
             month_number:getMonth(selectedMonth),
-            event_id: selectedEventId === "all" ? null : Number(selectedEventId)
+            event_id: selectedEventId === "all" ? null : Number(selectedEventId),
+            use_carry_forward:useCarryForward,
         })
         setSummaryData(data)
     }
@@ -78,14 +88,6 @@ export default function SummaryView() {
         });
         setEvents(data);
     }
-
-    useEffect(()=>{
-        fetchEvents();
-    }, [selectedOrgId, selectedYear])
-
-    useEffect(()=>{
-        fetchSummary();
-    }, [selectedOrgId, selectedYear, selectedMonth, selectedEventId, filterType]);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('ko-KR').format(amount);
@@ -126,6 +128,7 @@ export default function SummaryView() {
             summary_type:summaryData.summary_type,
             month_number:getMonth(selectedMonth),
             event_id: selectedEventId === "all" ? null : Number(selectedEventId),
+            use_carry_forward:useCarryForward
         })}`
 
     }
@@ -251,6 +254,16 @@ export default function SummaryView() {
                             </Select>
                             </div>
                         )}
+                        {filterType === 'month' && (
+                            <div className="flex-1 items-center space-x-2 mt-2 sm:mt-0">
+                                <Checkbox 
+                                id="useCarryForward"
+                                checked={useCarryForward}
+                                onCheckedChange={(checked:boolean) => setUseCarryForward(checked)}
+                                />
+                                <Label htmlFor="useCarryForward">전월 이월금 포함</Label>
+                            </div>
+                        )}
 
                         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                             <Button asChild disabled={report_download_url === undefined} className="w-full sm:w-auto">
@@ -272,7 +285,7 @@ export default function SummaryView() {
                     </div>
 
                     {/* 요약 정보 */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className={`grid grid-cols-1 ${useCarryForward ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-4`}>
                         <div className="p-4 bg-blue-50 rounded-lg">
                             <div className="text-sm text-gray-600 mb-1">총 수입</div>
                             <div className="text-blue-600">{formatCurrency(totalIncome)}원</div>
@@ -281,13 +294,18 @@ export default function SummaryView() {
                             <div className="text-sm text-gray-600 mb-1">총 지출</div>
                             <div className="text-red-600">{formatCurrency(totalExpense)}원</div>
                         </div>
+                        {useCarryForward && <div className="p-4 bg-gray-200 rounded-lg">
+                            <div className="text-sm text-gray-600 mb-1">이월된 금액</div>
+                            <div className="text-gray-600">{formatCurrency(summaryData?.carry_amount!)}원</div>
+                        </div>}
                         <div className={`p-4 rounded-lg ${balance >= 0 ? 'bg-green-50' : 'bg-orange-50'}`}>
                             <div className="text-sm text-gray-600 mb-1">잔액</div>
                             <div className={balance >= 0 ? 'text-green-600' : 'text-orange-600'}>
-                            {formatCurrency(balance)}원
+                            {formatCurrency(balance )}원
                             </div>
                         </div>
                     </div>
+                    
                 </div>
                 </CardContent>
             </Card>

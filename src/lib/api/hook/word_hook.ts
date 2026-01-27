@@ -8,7 +8,8 @@ export const useWord = () =>{
             const params = new URLSearchParams({
                 summary_type:create_settlement.summary_type,
                 organization_id:create_settlement.organization_id.toString(),
-                year:create_settlement.year.toString()
+                year:create_settlement.year.toString(),
+                use_carry_forward:create_settlement.use_carry_forward.toString(),
             })
             if (create_settlement.month_number !== null){
                 params.set("month_number", create_settlement.month_number.toString())
@@ -31,7 +32,8 @@ export const useWord = () =>{
         const params = new URLSearchParams({
             summary_type:create_settlement.summary_type,
             organization_id:create_settlement.organization_id.toString(),
-            year:create_settlement.year.toString()
+            year:create_settlement.year.toString(),
+            use_carry_forward:create_settlement.use_carry_forward.toString(),
         })
         if (create_settlement.month_number !== null){
             params.set("month_number", create_settlement.month_number.toString())

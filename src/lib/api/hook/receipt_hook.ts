@@ -36,7 +36,8 @@ export const useReceipt = () => {
             const params = new URLSearchParams({
                 "summary_type":receiptSummaryParams.summary_type,
                 "organization_id":receiptSummaryParams.organization_id.toString(),
-                "year":receiptSummaryParams.year.toString()
+                "year":receiptSummaryParams.year.toString(),
+                "use_carry_forward":receiptSummaryParams.use_carry_forward.toString(),
             });
             if (receiptSummaryParams.month_number !== null){
                 params.append("month_number", receiptSummaryParams.month_number.toString())
