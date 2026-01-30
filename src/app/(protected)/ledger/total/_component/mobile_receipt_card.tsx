@@ -3,8 +3,6 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { useReceipt } from "@/lib/api/hook/receipt_hook"
-import { useOrganizations } from "@/lib/api/organization_context"
 import { ReceiptResponseDto } from "@/lib/api/response/receipt_response"
 import { ImageIcon, Pencil, Trash2 } from "lucide-react"
 

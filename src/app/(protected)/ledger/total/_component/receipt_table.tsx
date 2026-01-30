@@ -3,8 +3,6 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { useReceipt } from "@/lib/api/hook/receipt_hook"
-import { useOrganizations } from "@/lib/api/organization_context"
 import { ReceiptResponseDto } from "@/lib/api/response/receipt_response"
 import { ImageIcon, Pencil, Trash2 } from "lucide-react"
 

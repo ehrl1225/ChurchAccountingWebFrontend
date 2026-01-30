@@ -11,7 +11,7 @@ import { useOrganizations } from "@/lib/api/organization_context";
 import { CategoryResponseDto } from "@/lib/api/response/category_response";
 import { EventResponseDTO } from "@/lib/api/response/event_response";
 import { ReceiptResponseDto } from "@/lib/api/response/receipt_response";
-import { ImageIcon, Plus, Upload, X } from "lucide-react";
+import { ImageIcon, Upload, X } from "lucide-react";
 import { FormEvent, forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import imageCompression from "browser-image-compression";
 import { useReceipt } from "@/lib/api/hook/receipt_hook";

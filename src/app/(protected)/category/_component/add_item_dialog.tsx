@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, TrendingUp } from "lucide-react";
+import { Plus } from "lucide-react";
 import React, { useState } from "react";
 
 export interface addItemDialogInput{

@@ -1,11 +1,7 @@
 "use client"
-import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AuthProvider, useAuth } from "@/lib/api/auth_context";
-import { usePathname, useRouter } from "next/navigation";
-import { Navigation, Page } from "./_component/Navigation";
-import login_page from "./auth/login/page";
+import { AuthProvider } from "@/lib/api/auth_context";
 import { Suspense } from "react";
 import { Toaster } from "sonner";
 

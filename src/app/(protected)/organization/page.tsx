@@ -13,7 +13,7 @@ import { useOrganization } from "@/lib/api/hook/organization_hook";
 import { useOrganizationInvitation } from "@/lib/api/hook/organization_invitation_hook";
 import { OrganizationResponseDto } from "@/lib/api/response/organization_response";
 import { Pencil, Plus, Trash2, UserPlus, X } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { MemberRole } from "@/lib/api/common_enum"
 import { JoinedOrganizatinoResponse } from "@/lib/api/response/joined_organization_response";
 import { useOrganizations } from "@/lib/api/organization_context";
