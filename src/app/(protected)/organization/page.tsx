@@ -294,7 +294,7 @@ export default function OrganizationPage() {
             <DialogHeader>
               <DialogTitle>멤버 초대</DialogTitle>
               <DialogDescription>
-                초대할 사용자의 ID를 입력하세요. 상대방이 수락하면 조직에 추가됩니다.
+                초대할 사용자의 이메일를 입력하세요. 상대방이 수락하면 조직에 추가됩니다.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleInvite} className="space-y-4">
@@ -304,7 +304,7 @@ export default function OrganizationPage() {
                   id="inviteUserId"
                   value={inviteUserId}
                   onChange={(e) => setInviteUserId(e.target.value)}
-                  placeholder="예: user3"
+                  placeholder="예: user3@user.com"
                   required
                 />
               </div>
