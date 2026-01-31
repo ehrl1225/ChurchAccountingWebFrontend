@@ -2,15 +2,9 @@
 
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useFile } from "@/lib/api/hook/file_hook"
-import { useReceipt } from "@/lib/api/hook/receipt_hook"
-import { useOrganizations } from "@/lib/api/organization_context"
 import { DialogDescription } from "@radix-ui/react-dialog"
-import axios from "axios"
 import { Download, Upload } from "lucide-react"
-import React, { useState } from "react"
+import { useState } from "react"
 import { ReceiptUploader } from "./receipt_uploader"
 
 interface UploadReceiptDialogInput{

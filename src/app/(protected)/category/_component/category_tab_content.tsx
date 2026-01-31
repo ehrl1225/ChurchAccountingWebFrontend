@@ -9,7 +9,7 @@ import { TxType } from "@/lib/api/common_enum";
 import { useOrganizations } from "@/lib/api/organization_context";
 import { EditAllCategoryDto } from "@/lib/api/request/category_request";
 import { CategoryResponseDto } from "@/lib/api/response/category_response";
-import { Check, Pencil, Trash2, TrendingDown, TrendingUp, X } from "lucide-react";
+import { ArrowUpRight, Check, Pencil, Trash2, TrendingDown, TrendingUp, X } from "lucide-react";
 import { useState } from "react";
 import { AddItemDialog } from "./add_item_dialog";
 import { useItem } from "@/lib/api/hook/item_hook";
@@ -390,6 +390,9 @@ export function CategoryTabContent ({
                                         className="ml-1 hover:text-blue-600"
                                         >
                                             <Pencil className="w-3 h-3" />
+                                        </button>
+                                        <button className="ml-1 hover:text-blue-600">
+                                            <ArrowUpRight className="w-3 h-3"/>
                                         </button>
                                         <button
                                         onClick={() => onDeleteItem(category.id, secondary.id)}

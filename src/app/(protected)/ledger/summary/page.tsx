@@ -12,7 +12,7 @@ import { useWord } from "@/lib/api/hook/word_hook";
 import { useOrganizations } from "@/lib/api/organization_context";
 import { EventResponseDTO } from "@/lib/api/response/event_response";
 import { ReceiptSummaryCategoryDto, ReceiptSummaryDto, SummaryType } from "@/lib/api/response/receipt_response";
-import { Download, ImageIcon } from "lucide-react";
+import { Download } from "lucide-react";
 import { useEffect, useState } from "react";
 import { DownloadReceiptImageDialog } from "./_component/download_receipt_image.dialog";
 import { useEvent } from "@/lib/api/hook/event_hook";

@@ -2,7 +2,6 @@ import axiosInstance from "../axios_instance";
 import { invitation_status } from "../common_enum";
 import { CreateOrganizationInvitationDto } from "../request/organization_invitation_request";
 import { OrganizationInvitationDto } from "../response/organization_invitation_response";
-import { OrganizationResponseDto } from "../response/organization_response";
 
 
 export const useOrganizationInvitation = () => {

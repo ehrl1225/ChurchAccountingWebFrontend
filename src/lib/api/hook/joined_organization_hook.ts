@@ -1,6 +1,5 @@
 import axiosInstance from "../axios_instance";
 import { ChangeRoleDto, DeleteJoinedOrganizationParams } from "../request/joined_organization_request"
-import { OrganizationRequestDto } from "../request/organization_request";
 import { OrganizationResponseDto } from "../response/organization_response";
 
 export const useJoinedOrganization = () => {
