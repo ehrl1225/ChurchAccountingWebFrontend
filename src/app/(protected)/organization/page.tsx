@@ -299,7 +299,7 @@ export default function OrganizationPage() {
             </DialogHeader>
             <form onSubmit={handleInvite} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="inviteUserId">사용자 ID</Label>
+                <Label htmlFor="inviteUserId">사용자 email</Label>
                 <Input
                   id="inviteUserId"
                   value={inviteUserId}
