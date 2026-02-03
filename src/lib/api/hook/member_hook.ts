@@ -11,8 +11,9 @@ export const useMember = () => {
         try{
             const response = await axiosInstance.post(`${domain_url}/register`, register_form, {
             })
+            toast.success("회원가입 성공");
         }catch (error){
-
+            toast.error("Failed to register")
         }
     }, [domain_url]);
 
