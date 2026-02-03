@@ -38,6 +38,7 @@ export default function TransactionTable() {
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
     const [carryForward, setCarryForward] = useState(false);
     const [carryForwardAmount, setCarryForwardAmount] = useState(0);
+    const [selectedEventId, setSelectedEventId] = useState("None");
     
     // Form states
     const [categories, setCategories] = useState<CategoryResponseDto[]>([]);
@@ -160,9 +161,14 @@ export default function TransactionTable() {
 
     // Filter transactions based on date range
     const filteredTransactions = transactions.filter(transaction => {
-        if (!startDate && !endDate) return true;
+        if (!startDate && !endDate) {
+            if (dateFilterType === "document") return true;
+            else if (dateFilterType === "actual" && transaction.actual_date === null) return false;
+            else return true;
+            
+        }
         if (dateFilterType === "actual" && transaction.actual_date === null){
-            return;
+            return false;
         }
         
         const dateToCompare = dateFilterType === 'document' ? transaction.paper_date : transaction.actual_date!;
@@ -176,6 +182,27 @@ export default function TransactionTable() {
         }
         
         return true;
+    }).filter(transaction => {
+
+        if (selectedEventId !== "all" && selectedEventId !== "None"){
+            if (transaction.event_id === null){
+                return false;
+            }
+            if (selectedEventId !== transaction.event_id.toString()){
+                return false;
+            }else{
+                return true;
+            }
+        }else{
+            if (selectedEventId === "all"){
+                if (transaction.event_id !== null){
+                    return true;
+                }else{
+                    return false;
+                }
+            }
+            return true
+        }
     }).sort((a, b) => {
         if (sortOrder === 'desc') {
             return b.paper_date.localeCompare(a.paper_date);
@@ -195,8 +222,9 @@ export default function TransactionTable() {
     const clearFilters = () => {
         setStartDate('');
         setEndDate('');
-        setSelectedMonth('');
+        setSelectedMonth('all');
         setCarryForward(false);
+        setSelectedEventId('None');
     };
 
     const handleMonthChange = (month: string) => {
@@ -334,6 +362,23 @@ export default function TransactionTable() {
                                 value={endDate}
                                 onChange={(e) => setEndDate(e.target.value)}
                                 />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>행사 필터</Label>
+                                <Select value={selectedEventId} onValueChange={setSelectedEventId}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="행사 선택"/>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="None">전체</SelectItem>
+                                        <SelectItem value="all">전체 행사</SelectItem>
+                                        {events.map(event=>(
+                                        <SelectItem key={event.id} value={event.id.toString()}>
+                                            {event.name}
+                                        </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
                         <div className="flex items-center space-x-2">
