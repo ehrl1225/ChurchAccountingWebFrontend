@@ -16,7 +16,8 @@ export default function page(){
     const router = useRouter();
     const {register_request} = useMember();
     
-    const handleSubmit = () => {
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
       if (password !== confirmPassword){
         return;
       }
