@@ -249,7 +249,7 @@ export default function OrganizationPage() {
                         <div key={member.member_id} className="border rounded-lg p-3 space-y-2">
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
-                              <p className="text-sm">{member.member_id}</p>
+                              <p className="text-sm">{member.member_name}</p>
                               <div className="mt-1">
                                 {org.my_role === "OWNER" ? (
                                   <Badge>소유자</Badge>

@@ -38,7 +38,8 @@ export function Navigation({currentPage, pendingInvitationsCount}:{currentPage:P
         <div className="flex items-center justify-between h-16">
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8 flex-1">
-            <h1 className="text-xl text-gray-900 whitespace-nowrap">회계 관리 시스템</h1>
+            <h1 className="block lg:hidden text-lg text-gray-900">회계 관리</h1>
+            <h1 className="hidden lg:block text-xl text-gray-900">회계 관리 시스템</h1>
             
             <div className="flex space-x-2">
               {navigationItems.map((item) => {
