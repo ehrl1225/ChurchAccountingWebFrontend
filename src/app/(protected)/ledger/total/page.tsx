@@ -204,10 +204,12 @@ export default function TransactionTable() {
             return true
         }
     }).sort((a, b) => {
+        const a_date = dateFilterType === 'document' ? a.paper_date : a.actual_date !== null ? a.actual_date : a.paper_date;
+        const b_date = dateFilterType === 'document' ? b.paper_date : b.actual_date !== null ? b.actual_date : b.paper_date;
         if (sortOrder === 'desc') {
-            return b.paper_date.localeCompare(a.paper_date);
+            return b_date.localeCompare(a_date);
         } else {
-            return a.paper_date.localeCompare(b.paper_date);
+            return a_date.localeCompare(b_date);
         }
     });
 
